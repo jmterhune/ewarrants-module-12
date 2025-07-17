@@ -1,0 +1,94 @@
+﻿<dotnetnuke type="Package" version="5.0">
+  <packages><package name="tjc.Modules.Notifications" type="Module" version="1.0.0">
+  <friendlyName>OOO Notifications</friendlyName>
+  <description />
+  <iconFile>~/Images/icon-events-32px.png</iconFile>
+  <owner>
+    <name />
+    <organization />
+    <url />
+    <email />
+  </owner>
+  <license>The license for this package is not currently included within the installation file, please check with the vendor for full license details.</license>
+  <releaseNotes />
+  <components>
+    <component type="Module">
+      <desktopModule>
+        <moduleName>OOO Notifications</moduleName>
+        <foldername>tjc.Modules/Notifications</foldername>
+        <businessControllerClass />
+        <supportedFeatures />
+        <moduleDefinitions>
+          <moduleDefinition>
+            <friendlyName>OOO Notifications</friendlyName>
+            <definitionName>OOO Notifications</definitionName>
+            <defaultCacheTime>0</defaultCacheTime>
+            <moduleControls>
+              <moduleControl>
+                <controlKey />
+                <controlSrc>DesktopModules/tjc.Modules/Notifications/NotificationView.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle />
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+                <viewOrder>0</viewOrder>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>Edit</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/Notifications/EditNotification.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Edit Notification</controlTitle>
+                <controlType>Edit</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>settings</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/Notifications/NotificationSettings.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Notification Settings</controlTitle>
+                <controlType>Edit</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+            </moduleControls>
+          </moduleDefinition>
+        </moduleDefinitions>
+      </desktopModule>
+    </component>
+    <component type="File">
+      <files>
+        <basePath>DesktopModules\tjc.Modules\Notifications</basePath>
+        <file>
+          <path>App_LocalResources</path>
+          <name>EditNotification.ascx.resx</name>
+        </file>
+        <file>
+          <path>App_LocalResources</path>
+          <name>NotificationSettings.ascx.resx</name>
+        </file>
+        <file>
+          <path>App_LocalResources</path>
+          <name>ViewNotifications.ascx.resx</name>
+        </file>
+        <file>
+          <name>EditNotification.ascx</name>
+        </file>
+        <file>
+          <name>module.css</name>
+        </file>
+        <file>
+          <name>NotificationSettings.ascx</name>
+        </file>
+        <file>
+          <name>NotificationView.ascx</name>
+        </file>
+      </files>
+    </component>
+  </components>
+</package></packages>
+</dotnetnuke>

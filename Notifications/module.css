@@ -1,0 +1,6 @@
+.date, .ui-timepicker-wrapper, .time {
+    width: 100px !important;
+}
+a.btn,a:visited.btn{
+    color:#fff !important;
+}

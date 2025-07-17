@@ -1,0 +1,304 @@
+﻿/*
+' Copyright (c) 2020  Joe Terhune
+'  All rights reserved.
+' 
+' THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED
+' TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+' THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+' CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+' DEALINGS IN THE SOFTWARE.
+' 
+*/
+
+using System;
+using DotNetNuke.Entities.Users;
+using tjc.Modules.eWarrants.Components;
+using DotNetNuke.Services.Exceptions;
+using System.Web.UI;
+using System.Text;
+using DotNetNuke.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
+using DotNetNuke.Services.Mail;
+using System.IO;
+using Atalasoft.Imaging.Codec;
+using Atalasoft.Imaging.Codec.Pdf;
+using System.Drawing;
+using System.Linq;
+
+namespace tjc.Modules.eWarrants
+{
+    /// -----------------------------------------------------------------------------
+    /// <summary>   
+    /// The Edit class is used to manage content
+    /// 
+    /// Typically your edit control would be used to create new content, or edit existing content within your module.
+    /// The ControlKey for this control is "Edit", and is defined in the manifest (.dnn) file.
+    /// 
+    /// Because the control inherits from ewarrantsModuleBase you have access to any custom properties
+    /// defined there, as well as properties from DNN such as PortalId, ModuleId, TabId, UserId and many more.
+    /// 
+    /// </summary>
+    /// -----------------------------------------------------------------------------
+    public partial class ManageWarrants : ewarrantsModuleBase
+    {
+        private readonly INavigationManager _navigationManager;
+        public ManageWarrants()
+        {
+            _navigationManager = DependencyProvider.GetRequiredService<INavigationManager>();
+        }
+
+        private void InitializeAdminToolbar()
+        {
+            string AdminJudge = "";
+            string JudgeRoleName = "";
+            string SergeantRole = "";
+            string contactPage = "";
+            if (Settings.Contains("AdminJudge"))
+                AdminJudge = Settings["AdminJudge"].ToString().Trim();
+            if (AdminJudge != "")
+                toolbar.IsAdminJudge = (AdminJudge == UserInfo.Username);
+            if (Settings.Contains("JudgeRole"))
+                JudgeRoleName = Settings["JudgeRole"].ToString().Trim();
+            if (Settings.Contains("SergeantRole"))
+                SergeantRole = Settings["SergeantRole"].ToString().Trim();
+            if (Settings.Contains("ContactPage"))
+                contactPage = Settings["ContactPage"].ToString().Trim();
+            toolbar.AdminJudge = AdminJudge;
+            toolbar.IsJudge = false;
+            toolbar.IsSiteAdmin = (UserInfo.IsSuperUser | UserInfo.IsInRole("Administrators"));
+            toolbar.JudgeRoleName = JudgeRoleName;
+            toolbar.NavAddWarrant = EditUrl("addWarrant");
+            toolbar.HiddenMenu = "status";
+            toolbar.NavAdminAgency = EditUrl("adminagency");
+            toolbar.NavClerkFTP = EditUrl("adminFTP");
+            toolbar.NavAdminCounty = EditUrl("admincounty");
+            toolbar.NavAnnotations = EditUrl("annotations");
+            toolbar.NavStatus = "";
+            toolbar.NavJudgeSign = EditUrl("judgesign");
+            toolbar.NavManageUsers = EditUrl("users");
+            toolbar.NavOutofOffice = EditUrl("cover");
+            toolbar.SergeantRoleName = SergeantRole;
+            toolbar.ContactListUrl = contactPage;
+        }
+
+        private void Page_Load(System.Object sender, System.EventArgs e)
+        {
+            try
+            {
+                if (!Page.IsPostBack)
+                {
+                    InitializeAdminToolbar();
+                    lnkCancel.NavigateUrl = _navigationManager.NavigateURL();
+                }
+            }
+            catch (Exception exc)
+            {
+                Exceptions.ProcessModuleLoadException(this, exc);
+            }
+        }
+
+        protected void btnSubmit_Click(object sender, EventArgs e)
+        {
+            int warrantId = Int32.Parse(txtWarrantId.Text);
+            var ctl = new WarrantController();
+            Warrant objwarrant = ctl.GetWarrant(warrantId);
+            if (objwarrant != null)
+            {
+                if (Int32.TryParse(drpStatus.SelectedValue, out int statusId))
+                    objwarrant.Status = (WarrantStatus)statusId;
+
+                ctl.UpdateWarrant(objwarrant);
+                pnlStatus.Visible = false;
+                txtWarrantId.Text = "";
+                ltWarrantInfo.Text = "";
+                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Warrant Status Updated", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.GreenSuccess);
+            }
+            else
+                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "No Matching Warrant Found", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
+        }
+
+        protected void cmdFindWarrant_Click(object sender, EventArgs e)
+        {
+            if (!Int32.TryParse(txtWarrantId.Text, out int warrantId))
+            {
+                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Please Enter a Valid Number", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
+                return;
+            }
+
+            var ctl = new WarrantController();
+            WarrantListItem objwarrant = ctl.GetWarrantListItem(warrantId);
+            if (objwarrant != null)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append("<table class='dnnTableDisplay '><tbody><tr>");
+                sb.Append("<td><strong>Title:</strong></td><td>");
+                sb.Append(objwarrant.Title);
+                sb.Append("</td><td><strong>Defendant:</strong></td><td>");
+                sb.Append(objwarrant.Defendant);
+                sb.Append("</td><td><strong>Agency:</strong></td><td>");
+                sb.Append(objwarrant.AgencyName);
+                sb.Append("</td><td><strong>Warrant Type:</strong></td><td>");
+                sb.Append(GetWarrantTypeName(objwarrant.WarrantType));
+                sb.Append("</td></tr><tr><td><strong>Judge:</strong></td><td>");
+                sb.Append(UserController.GetUserById(PortalId, objwarrant.JudgeUserID).DisplayName);
+                sb.Append("</td><td><strong>Current Status:</strong></td><td>");
+                sb.Append(GetWarrantStatusName(objwarrant.Status));
+                sb.Append("</td><td><strong>Created By:</strong></td><td>");
+                sb.Append(UserController.GetUserById(PortalId, objwarrant.CreatedByUserID).DisplayName);
+                sb.Append("</td><td><strong>Created Date:</strong></td><td>");
+                sb.Append(objwarrant.CreatedDate.ToShortDateString());
+                sb.Append("</td></tr></tbody></table>");
+                ltWarrantInfo.Text = sb.ToString();
+                pnlStatus.Visible = true;
+            }
+            else
+                ltWarrantInfo.Text = "<strong style='color:red'>No Matching Warrant Found!</strong>";
+        }
+
+        private string GetWarrantStatusName(WarrantStatus warrantStatus)
+        {
+            string statusName = "";
+            switch (warrantStatus)
+            {
+                case WarrantStatus.New:
+                    {
+                        statusName = "New Warrant";
+                        break;
+                    }
+
+                case WarrantStatus.UnderReview:
+                    {
+                        statusName = "Under Review";
+                        break;
+                    }
+
+                case WarrantStatus.Signed:
+                    {
+                        statusName = "Signed";
+                        break;
+                    }
+
+                case WarrantStatus.Rejected:
+                    {
+                        statusName = "Rejected";
+                        break;
+                    }
+
+                case WarrantStatus.Complete:
+                    {
+                        statusName = "Completed";
+                        break;
+                    }
+            }
+            return statusName;
+        }
+
+        private string GetWarrantTypeName(WarrantType warrantType)
+        {
+            string typeName = "";
+            switch (warrantType)
+            {
+                case WarrantType.Arrest:
+                    {
+                        typeName = "Arrest";
+                        break;
+                    }
+
+                case WarrantType.Search:
+                    {
+                        typeName = "Search";
+                        break;
+                    }
+
+                case WarrantType.PickupOrder:
+                    {
+                        typeName = "Pickup Order";
+                        break;
+                    }
+
+                case WarrantType.RPO:
+                    {
+                        typeName = "RPO";
+                        break;
+                    }
+            }
+            return typeName;
+        }
+
+        protected void btnResend_Click(object sender, EventArgs e)
+        {
+            int warrantId = Int32.Parse(txtWarrantId.Text);
+            var ctl = new WarrantController();
+            Warrant objwarrant = ctl.GetWarrant(warrantId);
+            try
+            {
+                Helper.AddPdfDecoder();
+                if (objwarrant != null)
+                {
+                    var fCtl = new FileController();
+                    PdfImageCollection col = new PdfImageCollection();
+                    UserInfo leoUser = UserController.Instance.GetUserById(PortalId, objwarrant.CreatedByUserID);
+                    Components.File objWarrantImage = fCtl.GetFile(objwarrant.FileID);
+                    int pages = RegisteredDecoders.GetImageInfo(new MemoryStream(objWarrantImage.Bytes)).FrameCount;
+                    // Add all pages from a multipage TIFF.
+                    for (int i = 0; i <= pages - 1; i++)
+                    {
+                        col.Add(new PdfImage(new MemoryStream(objWarrantImage.Bytes), i, PdfCompressionType.Auto));
+                    }
+                    // Create the PDF.
+                    DateTime modifiedDate = objwarrant.CreatedDate;
+                    if (objwarrant.ReviewedDate.HasValue)
+                        modifiedDate = objwarrant.ReviewedDate.Value;
+                    PdfEncoder pdf = new PdfEncoder
+                    {
+                        JpegQuality = 85,
+
+                        Metadata = new PdfMetadata(objwarrant.Title, "Circuit Court", "Warrant File", "", "", "", objwarrant.CreatedDate, modifiedDate),
+                        // Make each image fit into an 8.5 x 11 inch page (612 x 792 @ 72 DPI).
+                        SizeMode = PdfPageSizeMode.FitToPage,
+                        PageSize = new Size(612, 792)
+                    };
+                    string emailTo = "";
+                    List<MailAttachment> mailAttachments = new List<MailAttachment>();
+                    using (Stream stream = new MemoryStream())
+                    {
+                        pdf.Save(stream, col, null);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        byte[] pdfBytes = new byte[stream.Length - 1 + 1];
+                        stream.Read(pdfBytes, 0, System.Convert.ToInt32(stream.Length));
+                        MailAttachment attachment = new MailAttachment(string.Format("warrant-{0}.pdf", objwarrant.WarrantID), pdfBytes, "application/pdf");
+                        mailAttachments.Add(attachment);
+                    }
+                    string countyName = objwarrant.CountyName.ToLower();
+                    if (countyName.StartsWith("des"))
+                        emailTo = DeSotoClerkEmail;
+                    if (countyName.StartsWith("sar"))
+                        emailTo = SarasotaClerkEmail;
+                    if (countyName.StartsWith("man"))
+                        emailTo = ManateeClerkEmail;
+                    Mail.SendEmail("noreply.ewarrants@jud12.flcourts.org", "noreply.ewarrants@jud12.flcourts.org", emailTo, "New Warrant From 12th Judicial Circuit Court", string.Format("Warrant:{0} from {1} attached", objwarrant.WarrantID, objwarrant.Agency.AgencyName), mailAttachments);
+                }
+            }
+            catch (Exception ex)
+            {
+                string message = String.Format("Failed to send {0} Clerk Notification for Warrant Id:{1}", objwarrant.CountyName, objwarrant.WarrantID);
+                Mail.SendEmail("webhelp@jud12.flcourts.org", "webhelp@jud12.flcourts.org", "Clerk Notification Error", message);
+                Exceptions.LogException(ex);
+            }
+
+        }
+
+        protected void cmdDecriptFiles_Click(object sender, EventArgs e)
+        {
+            var ctl =new FileController();
+            var encrpytor = new Encryptor();
+            IEnumerable<Components.File> files=ctl.GetFiles().Where(x=>x.Persist==false);
+            foreach (Components.File file in files)
+            {
+                file.Bytes=encrpytor.DecryptStream(file.Bytes);
+                ctl.UpdateFile(file);
+            }
+        }
+    }
+}

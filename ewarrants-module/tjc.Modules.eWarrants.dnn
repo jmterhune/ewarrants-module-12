@@ -1,0 +1,388 @@
+﻿<dotnetnuke type="Package" version="5.0">
+  <packages><package name="tjc.Modules.eWarrants" type="Module" version="2.0.0">
+  <friendlyName>eWarrants C#</friendlyName>
+  <description />
+  <iconFile>~/DesktopModules/tjc.Modules/eWarrants/images/police-icon-32px.png</iconFile>
+  <owner>
+    <name />
+    <organization />
+    <url />
+    <email />
+  </owner>
+  <license>The license for this package is not currently included within the installation file, please check with the vendor for full license details.</license>
+  <releaseNotes />
+  <components>
+    <component type="Module">
+      <desktopModule>
+        <moduleName>eWarrants C#</moduleName>
+        <foldername>tjc.Modules/eWarrants</foldername>
+        <businessControllerClass />
+        <supportedFeatures />
+        <moduleDefinitions>
+          <moduleDefinition>
+            <friendlyName>eWarrants C#</friendlyName>
+            <definitionName>eWarrantsV2</definitionName>
+            <defaultCacheTime>0</defaultCacheTime>
+            <moduleControls>
+              <moduleControl>
+                <controlKey />
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/WarrantList.ascx</controlSrc>
+                <supportsPartialRendering>True</supportsPartialRendering>
+                <controlTitle>eWarrants</controlTitle>
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+                <viewOrder>0</viewOrder>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>adduser</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/EditUser.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Add User</controlTitle>
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>addWarrant</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/EditWarrant.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Upload Warrant</controlTitle>
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>adminagency</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/ManageAgencies.ascx</controlSrc>
+                <supportsPartialRendering>True</supportsPartialRendering>
+                <controlTitle>Manage Agencies</controlTitle>
+                <controlType>Admin</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>admincounty</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/ManageCounties.ascx</controlSrc>
+                <supportsPartialRendering>True</supportsPartialRendering>
+                <controlTitle>Manage Counties</controlTitle>
+                <controlType>Admin</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>adminusers</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/ManageUsers.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Manage Users</controlTitle>
+                <controlType>Admin</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>annotations</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/EditAnnotation.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Manage Annotations</controlTitle>
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>cover</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/EditSchedule.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>OOO Notification</controlTitle>
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>editAgency</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/EditAgency.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Edit Agency</controlTitle>
+                <controlType>Admin</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>EditEmail</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/EditEmail.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Edit Email</controlTitle>
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>editJudge</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/EditJudge.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Edit Judge</controlTitle>
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>existUser</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/EditExistingUser.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Existing Users</controlTitle>
+                <controlType>Admin</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>judgesign</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/ManageJudges.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Manage Judges</controlTitle>
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>rpo</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/EditRPO.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Upload RPO</controlTitle>
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>Settings</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/Settings.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Warrant Settings</controlTitle>
+                <controlType>Edit</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>users</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/ManageAgencyUsers.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle>Manage Users</controlTitle>
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+              <moduleControl>
+                <controlKey>wadmin</controlKey>
+                <controlSrc>DesktopModules/tjc.Modules/eWarrants/ManageWarrants.ascx</controlSrc>
+                <supportsPartialRendering>True</supportsPartialRendering>
+                <controlTitle>Manage Warrants</controlTitle>
+                <controlType>Admin</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+              </moduleControl>
+            </moduleControls>
+          </moduleDefinition>
+        </moduleDefinitions>
+      </desktopModule>
+    </component>
+    <component type="Assembly">
+      <assemblies>
+        <basePath>bin</basePath>
+        <assembly>
+          <name>tjc.Modules.eWarrants.dll</name>
+        </assembly>
+        <assembly>
+          <name>tjc.Modules.Notifications.dll</name>
+        </assembly>
+      </assemblies>
+    </component>
+    <component type="File">
+      <files>
+        <basePath>DesktopModules\tjc.Modules\eWarrants</basePath>
+        <file>
+          <path>App_LocalResources</path>
+          <name>EditWarrant.ascx.resx</name>
+        </file>
+        <file>
+          <path>App_LocalResources</path>
+          <name>ManageAgencyUsers.ascx.resx</name>
+        </file>
+        <file>
+          <path>App_LocalResources</path>
+          <name>Settings.ascx.resx</name>
+        </file>
+        <file>
+          <path>controls</path>
+          <name>NavigationControl.ascx</name>
+        </file>
+        <file>
+          <path>controls</path>
+          <name>ToolBar.ascx</name>
+        </file>
+        <file>
+          <path>controls</path>
+          <name>ZoomControl.ascx</name>
+        </file>
+        <file>
+          <path>css</path>
+          <name>ie.css</name>
+        </file>
+        <file>
+          <path>css</path>
+          <name>ie.min.css</name>
+        </file>
+        <file>
+          <path>css</path>
+          <name>JudeView.css</name>
+        </file>
+        <file>
+          <path>css</path>
+          <name>JudeView.min.css</name>
+        </file>
+        <file>
+          <path>Handlers</path>
+          <name>AttachmentHandler.ashx</name>
+        </file>
+        <file>
+          <path>Handlers</path>
+          <name>AttachmentViewer.ashx</name>
+        </file>
+        <file>
+          <path>Handlers</path>
+          <name>PdfHandler.ashx</name>
+        </file>
+        <file>
+          <path>Handlers</path>
+          <name>SignatureHandler.ashx</name>
+        </file>
+        <file>
+          <path>Handlers</path>
+          <name>WarrantHandler.ashx</name>
+        </file>
+        <file>
+          <path>images</path>
+          <name>admin.png</name>
+        </file>
+        <file>
+          <path>images</path>
+          <name>Check.png</name>
+        </file>
+        <file>
+          <path>images</path>
+          <name>Judge.png</name>
+        </file>
+		<file>
+          <path>images</path>
+          <name>police-icon-32px.png</name>
+        </file>
+        <file>
+          <path>images</path>
+          <name>PerSchedule.png</name>
+        </file>
+        <file>
+          <path>images</path>
+          <name>sergeant.png</name>
+        </file>
+        <file>
+          <path>js</path>
+          <name>HTML5.js</name>
+        </file>
+        <file>
+          <path>js</path>
+          <name>HTMLAdvDocViewer.js</name>
+        </file>
+        <file>
+          <path>js</path>
+          <name>HTMLAdvDocViewer.min.js</name>
+        </file>
+        <file>
+          <path>js</path>
+          <name>jquery-1.7.1.min.js</name>
+        </file>
+        <file>
+          <path>js</path>
+          <name>jquery.form.js</name>
+        </file>
+        <file>
+          <name>Blank.aspx</name>
+        </file>
+        <file>
+          <name>blank.tif</name>
+        </file>
+        <file>
+          <name>EditAgency.ascx</name>
+        </file>
+        <file>
+          <name>EditAnnotation.ascx</name>
+        </file>
+        <file>
+          <name>EditEmail.ascx</name>
+        </file>
+        <file>
+          <name>EditExistingUser.ascx</name>
+        </file>
+        <file>
+          <name>EditJudge.ascx</name>
+        </file>
+        <file>
+          <name>EditRPO.ascx</name>
+        </file>
+        <file>
+          <name>EditSchedule.ascx</name>
+        </file>
+        <file>
+          <name>EditUser.ascx</name>
+        </file>
+        <file>
+          <name>EditWarrant.ascx</name>
+        </file>
+        <file>
+          <name>ManageAgencies.ascx</name>
+        </file>
+        <file>
+          <name>ManageAgencyUsers.ascx</name>
+        </file>
+        <file>
+          <name>ManageCounties.ascx</name>
+        </file>
+        <file>
+          <name>ManageJudges.ascx</name>
+        </file>
+        <file>
+          <name>ManageUsers.ascx</name>
+        </file>
+        <file>
+          <name>ManageWarrants.ascx</name>
+        </file>
+        <file>
+          <name>module.css</name>
+        </file>
+        <file>
+          <name>Settings.ascx</name>
+        </file>
+        <file>
+          <name>WarrantList.ascx</name>
+        </file>
+        <file>
+          <name>WarrantView.aspx</name>
+        </file>
+      </files>
+    </component>
+  </components>
+</package></packages>
+</dotnetnuke>

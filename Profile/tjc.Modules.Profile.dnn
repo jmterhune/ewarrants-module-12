@@ -1,0 +1,62 @@
+﻿<dotnetnuke type="Package" version="5.0">
+  <packages><package name="tjc.Modules.Profile" type="Module" version="1.0.0">
+  <friendlyName>User Profile</friendlyName>
+  <description>User Profile</description>
+  <iconFile>~/DesktopModules/Admin/ViewProfile/viewProfile.png</iconFile>
+  <owner>
+    <name />
+    <organization />
+    <url />
+    <email />
+  </owner>
+  <license>The license for this package is not currently included within the installation file, please check with the vendor for full license details.</license>
+  <releaseNotes>This package has no Release Notes</releaseNotes>
+  <components>
+    <component type="Module">
+      <desktopModule>
+        <moduleName>User Profile</moduleName>
+        <foldername>tjc.Modules/Profile</foldername>
+        <businessControllerClass />
+        <supportedFeatures />
+        <shareable>Unsupported</shareable>
+        <moduleDefinitions>
+          <moduleDefinition>
+            <friendlyName>User Profile</friendlyName>
+            <definitionName>User Profile</definitionName>
+            <defaultCacheTime>0</defaultCacheTime>
+            <moduleControls>
+              <moduleControl>
+                <controlKey />
+                <controlSrc>DesktopModules/tjc.Modules/Profile/UserProfile.ascx</controlSrc>
+                <supportsPartialRendering>False</supportsPartialRendering>
+                <controlTitle />
+                <controlType>View</controlType>
+                <iconFile />
+                <helpUrl />
+                <supportsPopUps>False</supportsPopUps>
+                <viewOrder>0</viewOrder>
+              </moduleControl>
+            </moduleControls>
+          </moduleDefinition>
+        </moduleDefinitions>
+      </desktopModule>
+    </component>
+	  <component type="Assembly">
+      <assemblies>
+        <basePath>bin</basePath>
+        <assembly>
+          <name>tjc.Modules.Profile.dll</name>
+        </assembly>
+      </assemblies>
+    </component>
+    <component type="File">
+      <files>
+        <basePath>DesktopModules\tjc.modules\Profile</basePath>
+        <file>
+          <name>UserProfile.ascx</name>
+        </file>
+      </files>
+    </component>
+  </components>
+</package></packages>
+</dotnetnuke>

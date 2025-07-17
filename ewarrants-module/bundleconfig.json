@@ -1,0 +1,14 @@
+[
+  {
+    "outputFileName": "css/JudeView.min.css",
+    "inputFiles": [
+      "css/JudeView.css"
+    ]
+  },
+  {
+    "outputFileName": "js/HTMLAdvDocViewer.min.js",
+    "inputFiles": [
+      "js/HTMLAdvDocViewer.js"
+    ]
+  }
+]
