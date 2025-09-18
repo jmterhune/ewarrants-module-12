@@ -24,6 +24,15 @@ namespace tjc.Modules.eWarrants.controls
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl tbGroup;
 
         /// <summary>
+        /// lnkSms control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HyperLink lnkSms;
+
+        /// <summary>
         /// lnkJudges control.
         /// </summary>
         /// <remarks>

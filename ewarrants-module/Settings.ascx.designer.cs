@@ -465,57 +465,39 @@ namespace tjc.Modules.eWarrants
         protected global::System.Web.UI.WebControls.TextBox txtAttachemntDirectory;
 
         /// <summary>
-        /// lblTwilioAccountSid control.
+        /// lblTelnyxApiKey control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.UserControl lblTwilioAccountSid;
+        protected global::System.Web.UI.UserControl lblTelnyxApiKey;
 
         /// <summary>
-        /// txtTwilioAccountSid control.
+        /// txtTelnyxApiKey control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtTwilioAccountSid;
+        protected global::System.Web.UI.WebControls.TextBox txtTelnyxApiKey;
 
         /// <summary>
-        /// lblTwilioAuthToken control.
+        /// lblTelnyxPhoneNumber control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.UserControl lblTwilioAuthToken;
+        protected global::System.Web.UI.UserControl lblTelnyxPhoneNumber;
 
         /// <summary>
-        /// txtTwilioAuthToken control.
+        /// txtTelnyxPhoneNumber control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtTwilioAuthToken;
-
-        /// <summary>
-        /// lblTwilioPhoneNumber control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.UserControl lblTwilioPhoneNumber;
-
-        /// <summary>
-        /// txtTwilioPhoneNumber control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox txtTwilioPhoneNumber;
+        protected global::System.Web.UI.WebControls.TextBox txtTelnyxPhoneNumber;
     }
 }

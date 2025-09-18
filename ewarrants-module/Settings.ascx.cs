@@ -162,9 +162,6 @@ namespace tjc.Modules.eWarrants
                         chkDemoMode.Checked = objSettings.DemoMode;
                         txtCompletedThreshold.Text = objSettings.Hours.ToString();
                         txtSenderEmail.Text = objSettings.SenderEmail;
-                        txtTwilioAccountSid.Text = objSettings.TwilioAccountSid;
-                        txtTwilioAuthToken.Text = objSettings.TelnyxApiKey;
-                        txtTwilioPhoneNumber.Text = objSettings.TwilioPhoneNumber;
                     }
                 }
             }
@@ -244,9 +241,6 @@ namespace tjc.Modules.eWarrants
                 objSettings.Hours = completedThreshold;
                 objSettings.SignedThreshold = signedThreshold;
                 objSettings.SenderEmail = txtSenderEmail.Text;
-                objSettings.TwilioAccountSid = txtTwilioAccountSid.Text;
-                objSettings.TelnyxApiKey = txtTwilioAuthToken.Text;
-                objSettings.TwilioPhoneNumber = txtTwilioPhoneNumber.Text;
                 if (objSettings.ModuleID > 0)
                 {
                     ctl.UpdateSettings(objSettings);

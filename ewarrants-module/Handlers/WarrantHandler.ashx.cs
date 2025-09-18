@@ -1,96 +1,108 @@
-﻿using tjc.Modules.eWarrants.Components;
-using DotNetNuke.Entities.Users;
+﻿using DotNetNuke.Entities.Users;
+using DotNetNuke.Security;
+using DotNetNuke.Services.Exceptions;
+using DotNetNuke.Web.Api.Internal;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Web;
+using tjc.Modules.eWarrants.Components;
 
 namespace tjc.Modules.eWarrants.Handlers
 {
-    /// <summary>
-    /// Summary description for WarrantHandler
-    /// </summary>
     public class WarrantHandler : IHttpHandler
     {
-        private readonly UserInfo objuser = UserController.Instance.GetCurrentUserInfo();
+        private readonly UserInfo objUser = UserController.Instance.GetCurrentUserInfo();
+
         public void ProcessRequest(HttpContext context)
         {
-            if (context.Request.Files.Count > 0)
+            try
             {
+                if (objUser == null || objUser.UserID <= 0)
+                    throw new UnauthorizedAccessException("User not authenticated.");
 
-                HttpFileCollection files = context.Request.Files;
-                HttpPostedFile file = files[0];
-                string filename = file.FileName;
-                int fileId = 0;
-                try
-                {
-                    fileId = InsertFile(file, filename, objuser.UserID, false);
-                }
-                catch (Exception ex)
-                {
-                    DotNetNuke.Services.Exceptions.Exceptions.LogException(ex);
-                }
+                if (context.Request.Files.Count == 0)
+                    throw new ArgumentException("No file provided for upload.");
+
+               // ValidateAntiForgeryToken(context);
+                var file = context.Request.Files[0];
+                if (string.IsNullOrEmpty(file.FileName) || file.ContentLength == 0)
+                    throw new ArgumentException("Invalid or empty file.");
+
+                var fileId = InsertFile(file, file.FileName, objUser.UserID, false);
                 context.Response.ContentType = "text/plain";
                 context.Response.Write(fileId.ToString());
             }
-        }
-
-        public bool IsReusable
-        {
-            get
+            catch (Exception ex)
             {
-                return false;
+                Exceptions.LogException(ex);
+                context.Response.ContentType = "text/plain";
+                context.Response.StatusCode = ex is HttpException ? (int)((HttpException)ex).GetHttpCode() : (int)HttpStatusCode.BadRequest;
+                context.Response.Write("Error: " + ex.Message);
             }
         }
+
+        public bool IsReusable => false;
 
         private int InsertFile(HttpPostedFile file, string filename, int userID, bool persist)
         {
-            var ctl = new FileController();
+            if (file == null || string.IsNullOrEmpty(filename) || userID <= 0)
+                throw new ArgumentException("Invalid file, filename, or user ID.");
+
+            var extension = Path.GetExtension(filename)?.ToLower();
             FileType fileType;
-            byte[] imageData = GetImageBytes(file.InputStream);
-            string extension = Path.GetExtension(filename);
-            switch (extension.ToLower())
+            switch (extension)
             {
                 case ".pdf":
-                    {
-                        fileType = FileType.pdf;
-                        
-                        break;
-                    }
-
+                    fileType = FileType.pdf;
+                    break;
                 case ".tiff":
-                    {
-                        fileType = FileType.tiff;
-                        break;
-                    }
-
                 case ".tif":
-                    {
-                        fileType = FileType.tiff;
-                        break;
-                    }
+                    fileType = FileType.tiff;
+                    break;
                 default:
-                    {
-                        fileType = FileType.nonwarrant;
-                        break;
-                    }
+                    throw new ArgumentException("Invalid file type. Only PDF or TIFF files are allowed.");
             }
-            if (fileType == FileType.nonwarrant)
-                return 0;
-            
-            Components.File objFile = new Components.File { Bytes = imageData, UploadedBy = userID, Persist = persist, FileType = fileType, UploadedDate = DateTime.Now };
+
+            var imageData = GetImageBytes(file.InputStream);
+            var objFile = new Components.File
+            {
+                Bytes = imageData,
+                UploadedBy = userID,
+                Persist = persist,
+                FileType = fileType,
+                UploadedDate = DateTime.Now
+            };
+            var ctl = new FileController();
             ctl.CreateFile(objFile);
             return objFile.FileID;
         }
 
         private byte[] GetImageBytes(Stream stream)
         {
-            byte[] buffer;
-            long filesize = stream.Length;
-            buffer = new byte[stream.Length - 1 + 1];
-            stream.Read(buffer, 0, (int)filesize);
+            if (stream == null || stream.Length == 0)
+                throw new ArgumentException("Empty file stream.");
+
+            var buffer = new byte[stream.Length];
+            stream.Read(buffer, 0, (int)stream.Length);
             return buffer;
+        }
+
+        private void ValidateAntiForgeryToken(HttpContext context)
+        {
+            var token = context.Request.Headers["RequestVerificationToken"];
+            if (string.IsNullOrEmpty(token))
+                throw new HttpException((int)HttpStatusCode.Forbidden, "Missing anti-forgery token.");
+
+            try
+            {
+                AntiForgery.Instance.Validate("RequestVerificationToken", token);
+            }
+            catch
+            {
+                throw new HttpException((int)HttpStatusCode.Forbidden, "Invalid anti-forgery token.");
+            }
         }
     }
 }

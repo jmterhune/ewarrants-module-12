@@ -52,11 +52,16 @@ namespace tjc.Modules.eWarrants
                     return "";
             }
         }
-        public bool HasUserOptedForSms()
-        {
-            var user = UserInfo;
-            string smsConsent = user.Profile.GetPropertyValue("SmsConsent");
-            return !string.IsNullOrEmpty(smsConsent);
+        public bool HasUserOptedForSms(int userId)
+        { bool hasConsent = false;
+            var user = UserController.Instance.GetUserById(PortalId,userId);
+            if (user.IsInRole(JudgeRole))
+            {
+                string smsConsent = user.Profile.GetPropertyValue("SmsConsent");
+                bool.TryParse(smsConsent, out hasConsent);
+                return hasConsent;
+            }
+            return hasConsent; 
         }
         public int AgencyId
         {
@@ -99,7 +104,7 @@ namespace tjc.Modules.eWarrants
                 return "";
             }
         }
-       
+
         public string ManateeClerkEmail
         {
             get
@@ -170,7 +175,7 @@ namespace tjc.Modules.eWarrants
                 return false;
             }
         }
-     
+
         public string AdminJudgeRole
         {
             get
@@ -180,7 +185,8 @@ namespace tjc.Modules.eWarrants
                 return "";
             }
         }
-        public bool IsJudge {
+        public bool IsJudge
+        {
             get
             {
                 var ctl = new JudgeController();

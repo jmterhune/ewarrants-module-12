@@ -19,7 +19,5 @@ namespace tjc.Modules.eWarrants.Components
         public int ClaimedThreshold { get; set; }
         public bool DemoMode { get; set; }
         public int Hours { get; set; }
-        public string TelnyxApiKey { get; set; }
-        public string TelnyxPhoneNumber { get; set; }
     }
 }

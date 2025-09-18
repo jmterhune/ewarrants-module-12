@@ -78,6 +78,7 @@ namespace tjc.Modules.eWarrants
             toolbar.NavJudgeSign = EditUrl("judgesign");
             toolbar.NavManageUsers = EditUrl("users");
             toolbar.NavOutofOffice = EditUrl("cover");
+            toolbar.NavSms = EditUrl("sms");
             toolbar.SergeantRoleName = SergeantRole;
             toolbar.ContactListUrl = contactPage;
         }

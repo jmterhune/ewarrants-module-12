@@ -1,109 +1,130 @@
-﻿using tjc.Modules.eWarrants.Components;
-using DotNetNuke.Common.Utilities;
+﻿using DotNetNuke.Common.Utilities;
 using DotNetNuke.Entities.Modules;
 using DotNetNuke.Entities.Users;
+using DotNetNuke.Security;
+using DotNetNuke.Services.Exceptions;
+using DotNetNuke.Web.Api.Internal;
 using System;
-using System.Collections;
 using System.IO;
+using System.Net;
 using System.Web;
+using tjc.Modules.eWarrants.Components;
 
 namespace tjc.Modules.eWarrants.Handlers
 {
-    /// <summary>
-    /// Summary description for Handler1
-    /// </summary>
     public class AttachmentHandler : IHttpHandler
     {
-        private readonly UserInfo objuser = UserController.Instance.GetCurrentUserInfo();
+        private readonly UserInfo objUser = UserController.Instance.GetCurrentUserInfo();
+
         public void ProcessRequest(HttpContext context)
         {
-            if (context.Request.Files.Count > 0)
+            try
             {
-                if (objuser != null && objuser.UserID > 0)
+                if (objUser == null || objUser.UserID <= 0)
+                    throw new UnauthorizedAccessException("User not authenticated. You must be Law Enforcement Personnel.");
+
+                ValidateAntiForgeryToken(context);
+
+                if (context.Request.Files.Count > 0)
                 {
-                    HttpFileCollection files = context.Request.Files;
-                    HttpPostedFile file = files[0];
-                    string filename = file.FileName;
-                    int fileId = 0;
-                    string attachmentType = context.Request.Params["attachmentType"];
-                    int moduleId = System.Convert.ToInt32(context.Request.Params["moduleId"]);
-                    int tabId = System.Convert.ToInt32(context.Request.Params["tabId"]);
-                    try
-                    {
-                        fileId = InsertAttachment(file, filename, attachmentType, objuser.UserID, moduleId, tabId);
-                    }
-                    catch (Exception ex)
-                    {
-                        DotNetNuke.Services.Exceptions.Exceptions.LogException(ex);
-                    }
+                    var file = context.Request.Files[0];
+                    var attachmentType = context.Request.Params["attachmentType"];
+                    if (string.IsNullOrEmpty(attachmentType))
+                        throw new ArgumentException("Attachment type is required.");
+
+                    if (!Int32.TryParse(context.Request.Params["moduleId"], out int moduleId) || moduleId <= 0)
+                        throw new ArgumentException("Invalid module ID.");
+
+                    if (!Int32.TryParse(context.Request.Params["tabId"], out int tabId) || tabId <= 0)
+                        throw new ArgumentException("Invalid tab ID.");
+
+                    if (string.IsNullOrEmpty(file.FileName) || file.ContentLength == 0)
+                        throw new ArgumentException("Invalid or empty file.");
+
+                    var fileId = InsertAttachment(file, file.FileName, attachmentType, objUser.UserID, moduleId, tabId);
                     context.Response.ContentType = "text/plain";
                     context.Response.Write(fileId.ToString());
                 }
                 else
                 {
-                    context.Response.ContentType = "text/plain";
-                    context.Response.Write("File Rejected. You must be Law Enforcement Personnel");
-                }
-            }
-            else
-            {
-                string fileIdParameter = context.Request.Params["fileId"];
-                if (!string.IsNullOrEmpty(fileIdParameter))
-                {
-                    try
+                    var fileIdParameter = context.Request.Params["fileId"];
+                    if (!string.IsNullOrEmpty(fileIdParameter))
                     {
-                        int fileId = System.Convert.ToInt32(fileIdParameter);
+                        if (!Int32.TryParse(fileIdParameter, out int fileId))
+                            throw new ArgumentException("Invalid file ID for deletion.");
+
                         var ctl = new AttachmentController();
                         ctl.DeleteAttachment(fileId);
                         context.Response.ContentType = "text/plain";
-                        context.Response.Write("");
+                        context.Response.Write("Success");
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        context.Response.ContentType = "text/plain";
-                        context.Response.Write("Can't Delete");
-                        DotNetNuke.Services.Exceptions.Exceptions.LogException(ex);
+                        throw new ArgumentException("No file or file ID provided.");
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Exceptions.LogException(ex);
+                context.Response.ContentType = "text/plain";
+                context.Response.StatusCode = ex is HttpException ? (int)((HttpException)ex).GetHttpCode() : (int)HttpStatusCode.BadRequest;
+                context.Response.Write("Error: " + ex.Message);
+            }
         }
 
-        private int InsertAttachment(HttpPostedFile file, string filename, string attachmentType, int userID, int moduleId, int tabid)
+        private int InsertAttachment(HttpPostedFile file, string filename, string attachmentType, int userID, int moduleId, int tabId)
         {
-            var ctl = new AttachmentController();
-            string extension = Path.GetExtension(filename);
-            if (extension.ToLower() != ".pdf")
-                return 0;
+            if (file == null || string.IsNullOrEmpty(filename) || string.IsNullOrEmpty(attachmentType) || userID <= 0 || moduleId <= 0 || tabId <= 0)
+                throw new ArgumentException("Invalid file, filename, attachment type, user ID, module ID, or tab ID.");
 
-            ModuleInfo modCtl = ModuleController.Instance.GetModule(moduleId, tabid, true);
-            Hashtable setting = modCtl.TabModuleSettings;
-            string attachmentPath = @"C:\Sites\Attachments\";
-            if (setting.Contains("RPODirectory"))
+            var extension = Path.GetExtension(filename)?.ToLower();
+            if (extension != ".pdf")
+                throw new ArgumentException("Only PDF files are allowed for attachments.");
+
+            var ctl = new AttachmentController();
+            var modCtl = ModuleController.Instance.GetModule(moduleId, tabId, true);
+            if (modCtl == null)
+                throw new InvalidOperationException("Module not found.");
+
+            var settings = modCtl.TabModuleSettings;
+            var attachmentPath = settings.Contains("RPODirectory") ? settings["RPODirectory"].ToString() : @"C:\Sites\Attachments\";
+            if (!attachmentPath.EndsWith(@"\"))
+                attachmentPath += @"\";
+
+            var attachment = new Attachment
             {
-                attachmentPath = setting["RPODirectory"].ToString();
-                if (!attachmentPath.EndsWith(@"\"))
-                    attachmentPath += @"\";
-            }
-            Attachment attachment = new Attachment { UserID = userID, Description = attachmentType, Path = attachmentPath };
+                UserID = userID,
+                Description = attachmentType,
+                Path = attachmentPath
+            };
             ctl.CreateAttachment(attachment);
-            int fileId = attachment.FileID;
-            if (fileId >= 0)
-            {
-                string fname = attachmentPath + userID.ToString() + "_" + fileId.ToString() + "_" + attachmentType + ".pdf";
-                file.SaveAs(fname);
-                attachment.FileName = fname;
-                ctl.UpdateAttachment(attachment);
-            }
-            else
-                return 0;
+            var fileId = attachment.FileID;
+            if (fileId <= 0)
+                throw new InvalidOperationException("Failed to create attachment record.");
+
+            var fname = $"{attachmentPath}{userID}_{fileId}_{attachmentType}.pdf";
+            file.SaveAs(fname);
+            attachment.FileName = fname;
+            ctl.UpdateAttachment(attachment);
             return fileId;
         }
 
-        public bool IsReusable
+        public bool IsReusable => false;
+
+        private void ValidateAntiForgeryToken(HttpContext context)
         {
-            get
+            var token = context.Request.Headers["RequestVerificationToken"];
+            if (string.IsNullOrEmpty(token))
+                throw new HttpException((int)HttpStatusCode.Forbidden, "Missing anti-forgery token.");
+
+            try
             {
-                return false;
+                AntiForgery.Instance.Validate(null, token);
+            }
+            catch
+            {
+                throw new HttpException((int)HttpStatusCode.Forbidden, "Invalid anti-forgery token.");
             }
         }
     }

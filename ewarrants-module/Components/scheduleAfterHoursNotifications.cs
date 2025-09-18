@@ -4,12 +4,15 @@ using DotNetNuke.Services.Scheduling;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using tjc.Modules.eWarrants.Components;
 
 namespace tjc.Modules.eWarrants.Components
 {
     public class ScheduleAfterHoursNotifications : SchedulerClient
     {
         private int PortalId = 0;
+
         public ScheduleAfterHoursNotifications(ScheduleHistoryItem oItem) : base()
         {
             this.ScheduleHistoryItem = oItem;
@@ -19,31 +22,26 @@ namespace tjc.Modules.eWarrants.Components
         {
             try
             {
-                // Perform required items for logging
                 this.Progressing();
-                if (DateTime.Now.DayOfWeek == DayOfWeek.Saturday | DateTime.Now.DayOfWeek == DayOfWeek.Sunday)
+                if (DateTime.Now.DayOfWeek == DayOfWeek.Saturday || DateTime.Now.DayOfWeek == DayOfWeek.Sunday)
                 {
-                    // To log note
-                    this.ScheduleHistoryItem.AddLogNote("Weekend Notifications skipped");
-                    // Show success
+                    this.ScheduleHistoryItem.AddLogNote("Weekend notifications skipped.");
                     this.ScheduleHistoryItem.Succeeded = true;
                     return;
                 }
+
                 var ctl = new WarrantController();
-                IEnumerable<WarrantListItem> colWarrants = ctl.GetNotificationsNotSent();
-                if (colWarrants != null && colWarrants.Count() > 0)
+                var colWarrants = ctl.GetNotificationsNotSent() ?? new List<WarrantListItem>();
+                if (colWarrants.Any())
                     SendEmailResponse(colWarrants);
 
-                // To log note
-                this.ScheduleHistoryItem.AddLogNote(" Queued Warrant Notifications Sent Successfully");
-                // Show success
+                this.ScheduleHistoryItem.AddLogNote("Queued warrant notifications sent successfully.");
                 this.ScheduleHistoryItem.Succeeded = true;
             }
-
             catch (Exception ex)
             {
                 this.ScheduleHistoryItem.Succeeded = false;
-                this.ScheduleHistoryItem.AddLogNote("Exception= " + ex.ToString());
+                this.ScheduleHistoryItem.AddLogNote("Exception: " + ex.Message);
                 this.Errored(ref ex);
                 DotNetNuke.Services.Exceptions.Exceptions.LogException(ex);
             }
@@ -51,137 +49,161 @@ namespace tjc.Modules.eWarrants.Components
 
         private UserInfo GetCoverJudge(int coverJudgeId)
         {
-            return UserController.GetUserById(0, coverJudgeId);
+            return UserController.GetUserById(PortalId, coverJudgeId);
         }
+
         private void SendEmailResponse(IEnumerable<WarrantListItem> colWarrants)
         {
-            var ctl = new WarrantController();
-            string fromaddress = "webhelp@jud12.flcourts.org";
-            string senderEmail = "webhelp@jud12.flcourts.org";
-            bool notificationSent;
-            foreach (WarrantListItem w in colWarrants)
+            try
             {
-                notificationSent = false;
+                var ctl = new WarrantController();
+                string fromAddress = "webhelp@jud12.flcourts.org";
+                string senderEmail = "webhelp@jud12.flcourts.org";
 
                 var sCtl = new SettingController();
-                Setting setting = sCtl.GetSetting();
-                if (setting != null)
-                {
-                    if(!string.IsNullOrEmpty(setting.SenderEmail))
-                     fromaddress = setting.SenderEmail;
-                }
-                UserInfo sender = UserController.GetUserById(PortalId, w.CreatedByUserID);
-                if (sender != null)
-                    senderEmail = sender.Email;
-                UserInfo judge = UserController.GetUserById(PortalId, w.JudgeUserID);
-                UserInfo CoverJudgeInfo = null;
-                string coverJudgeName = "";
-                string subject = "";
-                string userDisplay = "";
-                string body = "";
+                var setting = sCtl.GetSetting();
+                if (setting != null && !string.IsNullOrEmpty(setting.SenderEmail))
+                    fromAddress = setting.SenderEmail;
 
-                if (judge != null)
+                foreach (var w in colWarrants)
                 {
-                    string toAddress = judge.Email;
-                    string address2 = "";
-                    string address3 = "";
-                    IEnumerable<Notification> colNotifications;
-                    var nCtl = new NotificationController();
-                    colNotifications = nCtl.GetCurrentNotificationsByJudge(judge.UserID);
-                    var jCtl = new JudgeController();
-                    if (colNotifications != null && colNotifications.Count() > 0)
+                    bool notificationSent = false;
+
+                    var sender = UserController.GetUserById(PortalId, w.CreatedByUserID);
+                    if (sender == null)
                     {
-                        Notification objNotification = colNotifications.FirstOrDefault();
+                        this.ScheduleHistoryItem.AddLogNote($"Failed to send notification for Warrant ID {w.WarrantID}: Sender user not found.");
+                        continue;
+                    }
+                    senderEmail = sender.Email;
+
+                    var judge = UserController.GetUserById(PortalId, w.JudgeUserID);
+                    if (judge == null)
+                    {
+                        this.ScheduleHistoryItem.AddLogNote($"Failed to send notification for Warrant ID {w.WarrantID}: Judge user not found.");
+                        continue;
+                    }
+
+                    string toAddress = judge.Email;
+                    string address2 = Helper.GetProfileValue(judge, "Email2");
+                    string address3 = Helper.GetProfileValue(judge, "Email3");
+                    string subject = "";
+                    string userDisplay = sender.DisplayName;
+                    string body = "";
+                    string coverJudgeName = "";
+                    UserInfo coverJudgeInfo = null;
+
+                    var nCtl = new NotificationController();
+                    var colNotifications = nCtl.GetCurrentNotificationsByJudge(judge.UserID) ?? new List<Notification>();
+                    var jCtl = new JudgeController();
+
+                    if (colNotifications.Any())
+                    {
+                        var objNotification = colNotifications.FirstOrDefault();
                         if (objNotification.CoveringJudgeID > 0)
                         {
-                            Judge jInfo = jCtl.GetJudge(objNotification.CoveringJudgeID);
-                            if (DateTime.Now.TimeOfDay >= jInfo.DayStart.TimeOfDay & DateTime.Now.TimeOfDay <= jInfo.DayEnd.TimeOfDay)
+                            var jInfo = jCtl.GetJudge(objNotification.CoveringJudgeID);
+                            if (jInfo == null)
                             {
-                                CoverJudgeInfo = GetCoverJudge(objNotification.CoveringJudgeID);
-                                coverJudgeName = CoverJudgeInfo.DisplayName;
-                                toAddress = CoverJudgeInfo.Email;
-                                if (CoverJudgeInfo.Profile.ProfileProperties["Email2"] != null)
-                                    address2 = CoverJudgeInfo.Profile.ProfileProperties["Email2"].PropertyValue;
-                                if (CoverJudgeInfo.Profile.ProfileProperties["Email3"] != null)
-                                    address3 = CoverJudgeInfo.Profile.ProfileProperties["Email3"].PropertyValue;
-                                subject = "New Warrant Forwarded from  " + judge.DisplayName.Replace("&nbsp;", " ") + " for Your Review";
-                                userDisplay = sender.DisplayName.Replace("&nbsp;", " ");
-                                body = "A new warrant (ID: " + w.WarrantID + ")  has been submitted by " + userDisplay + " from " + w.AgencyName + Environment.NewLine + Environment.NewLine;
-                                body += judge.DisplayName.Replace("&nbsp;", " ") + " is out of the office and has asked that warrants be forwarded to you during their absence.";
-                                DotNetNuke.Services.Mail.Mail.SendEmail(senderEmail,fromaddress, toAddress, subject, body);
-                                if (!string.IsNullOrEmpty(address2))
-                                    SendToAlternateContact(setting.TwilioAccountSid, setting.TelnyxApiKey, setting.TwilioPhoneNumber, fromaddress, address2, subject, body);
-                                if (!string.IsNullOrEmpty(address3))
-                                    SendToAlternateContact(setting.TwilioAccountSid, setting.TelnyxApiKey, setting.TwilioPhoneNumber, fromaddress, address3, subject, body);
+                                this.ScheduleHistoryItem.AddLogNote($"Failed to send notification for Warrant ID {w.WarrantID}: Covering judge not found.");
+                                continue;
+                            }
+
+                            if (DateTime.Now.TimeOfDay >= jInfo.DayStart.TimeOfDay && DateTime.Now.TimeOfDay <= jInfo.DayEnd.TimeOfDay)
+                            {
+                                coverJudgeInfo = GetCoverJudge(objNotification.CoveringJudgeID);
+                                if (coverJudgeInfo == null)
+                                {
+                                    this.ScheduleHistoryItem.AddLogNote($"Failed to send notification for Warrant ID {w.WarrantID}: Covering judge user not found.");
+                                    continue;
+                                }
+
+                                coverJudgeName = coverJudgeInfo.DisplayName;
+                                toAddress = coverJudgeInfo.Email;
+                                address2 = Helper.GetProfileValue(coverJudgeInfo, "Email2");
+                                address3 = Helper.GetProfileValue(coverJudgeInfo, "Email3");
+                                subject = $"New Warrant Forwarded from {judge.DisplayName} for Your Review";
+                                body = $"A new warrant (ID: {w.WarrantID}) has been submitted by {userDisplay} from {w.AgencyName}{Environment.NewLine}{Environment.NewLine}";
+                                body += $"{judge.DisplayName} is out of the office and has asked that warrants be forwarded to you during their absence.";
+
+                                Mail.SendEmail(senderEmail, fromAddress, toAddress, subject, body);
+                                Helper.SendToAlternateContact(fromAddress, address2, subject, body);
+                                Helper.SendToAlternateContact(fromAddress, address3, subject, body);
+                                if (HasUserOptedForSms(coverJudgeInfo))
+                                {
+                                    Task.Run(() => Helper.SendSmsNotifications(coverJudgeInfo,  subject, body)).GetAwaiter().GetResult();
+                                }
                                 notificationSent = true;
                             }
                         }
                         else
                         {
-                            Judge jInfo = jCtl.GetJudge(w.JudgeUserID);
-                            if (DateTime.Now.TimeOfDay >= jInfo.DayStart.TimeOfDay & DateTime.Now.TimeOfDay <= jInfo.DayEnd.TimeOfDay)
+                            var jInfo = jCtl.GetJudge(w.JudgeUserID);
+                            if (jInfo == null)
+                            {
+                                this.ScheduleHistoryItem.AddLogNote($"Failed to send notification for Warrant ID {w.WarrantID}: Judge info not found.");
+                                continue;
+                            }
+
+                            if (DateTime.Now.TimeOfDay >= jInfo.DayStart.TimeOfDay && DateTime.Now.TimeOfDay <= jInfo.DayEnd.TimeOfDay)
                             {
                                 subject = "New Warrant Submitted for Review";
-                                userDisplay = sender.DisplayName.Replace("&nbsp;", " ");
-                                body = "A new warrant has been submitted by " + userDisplay + " from " + w.AgencyName;
-                                if (judge.Profile.ProfileProperties["Email2"] != null)
-                                    address2 = judge.Profile.ProfileProperties["Email2"].PropertyValue;
-                                if (judge.Profile.ProfileProperties["Email3"] != null)
-                                    address3 = judge.Profile.ProfileProperties["Email3"].PropertyValue;
+                                body = $"A new warrant has been submitted by {userDisplay} from {w.AgencyName}";
 
-                                DotNetNuke.Services.Mail.Mail.SendEmail(senderEmail,fromaddress, toAddress, subject, body);
-
-                                if (!string.IsNullOrEmpty(address2))
-                                    SendToAlternateContact(setting.TwilioAccountSid, setting.TelnyxApiKey, setting.TwilioPhoneNumber, fromaddress, address2, subject, body);
-
-                                if (!string.IsNullOrEmpty(address3))
-                                    SendToAlternateContact(setting.TwilioAccountSid, setting.TelnyxApiKey, setting.TwilioPhoneNumber, fromaddress, address3, subject, body);
+                                Mail.SendEmail(senderEmail, fromAddress, toAddress, subject, body);
+                                Helper.SendToAlternateContact(fromAddress, address2, subject, body);
+                                Helper.SendToAlternateContact(fromAddress, address3, subject, body);
+                                if (HasUserOptedForSms(judge))
+                                {
+                                    Task.Run(() => Helper.SendSmsNotifications(judge,  subject, body)).GetAwaiter().GetResult();
+                                }
                                 notificationSent = true;
                             }
                         }
                     }
                     else
                     {
-                        Judge jInfo = jCtl.GetJudge(w.JudgeUserID);
-                        if (DateTime.Now.TimeOfDay >= jInfo.DayStart.TimeOfDay & DateTime.Now.TimeOfDay <= jInfo.DayEnd.TimeOfDay)
+                        var jInfo = jCtl.GetJudge(w.JudgeUserID);
+                        if (jInfo == null)
                         {
-                            subject = "New Warrant Submitted for Review";
-                            userDisplay = sender.DisplayName.Replace("&nbsp;", " ");
-                            body = "A new warrant (ID: " + w.WarrantID + ") has been submitted by " + userDisplay + " from " + w.AgencyName;
-                            if (judge.Profile.ProfileProperties["Email2"] != null)
-                                address2 = judge.Profile.ProfileProperties["Email2"].PropertyValue;
-                            if (judge.Profile.ProfileProperties["Email3"] != null)
-                                address3 = judge.Profile.ProfileProperties["Email3"].PropertyValue;
-                            DotNetNuke.Services.Mail.Mail.SendEmail(senderEmail,fromaddress, toAddress, subject, body);
-                            if (!string.IsNullOrEmpty(address2))
-                                SendToAlternateContact(setting.TwilioAccountSid, setting.TelnyxApiKey, setting.TwilioPhoneNumber, fromaddress, address2, subject, body);
-                            if (!string.IsNullOrEmpty(address3))
-                                SendToAlternateContact(setting.TwilioAccountSid, setting.TelnyxApiKey, setting.TwilioPhoneNumber, fromaddress, address3, subject, body);
+                            this.ScheduleHistoryItem.AddLogNote($"Failed to send notification for Warrant ID {w.WarrantID}: Judge info not found.");
+                            continue;
+                        }
+
+                        if (DateTime.Now.TimeOfDay >= jInfo.DayStart.TimeOfDay && DateTime.Now.TimeOfDay <= jInfo.DayEnd.TimeOfDay)
+                        {
+                            subject = $"New Warrant Submitted for Review";
+                            body = $"A new warrant (ID: {w.WarrantID}) has been submitted by {userDisplay} from {w.AgencyName}";
+
+                            Mail.SendEmail(senderEmail, fromAddress, toAddress, subject, body);
+                            Helper.SendToAlternateContact(fromAddress, address2, subject, body);
+                            Helper.SendToAlternateContact(fromAddress, address3, subject, body);
+                            if (HasUserOptedForSms(judge))
+                            {
+                                Task.Run(() => Helper.SendSmsNotifications(judge,  subject, body)).GetAwaiter().GetResult();
+                            }
                             notificationSent = true;
                         }
                     }
+
+                    if (notificationSent)
+                        ctl.UpdateNotificationSent(w.WarrantID);
                 }
-                if (notificationSent)
-                    ctl.UpdateNotificationSent(w.WarrantID);
+            }
+            catch (Exception ex)
+            {
+                this.ScheduleHistoryItem.AddLogNote($"Failed to send notifications: {ex.Message}");
+                DotNetNuke.Services.Exceptions.Exceptions.LogException(ex);
             }
         }
-        private async void SendToAlternateContact(string accountSid, string authToken, string fromPhoneNumber, string replyEmail, string contactPoint, string subject, string body)
+
+        private bool HasUserOptedForSms(UserInfo user)
         {
-            if (string.IsNullOrEmpty(accountSid) || string.IsNullOrEmpty(authToken) || string.IsNullOrEmpty(fromPhoneNumber))
-            {
-                return;
-            }
-            if (contactPoint.Contains("@"))
-            {
-                // If contactPoint is an email address, send an email instead of SMS
-                Mail.SendEmail(replyEmail, contactPoint, subject, body);
-                return;
-            }
-            else
-            {
-                var smsService = new TwilioSmsService(accountSid, authToken, fromPhoneNumber);
-                await smsService.SendSmsAsync(contactPoint, body);
-            }
+            if (user == null)
+                return false;
+
+            var smsConsent = Helper.GetProfileValue(user, "SmsConsent");
+            return !string.IsNullOrEmpty(smsConsent) && smsConsent.ToLower() == "true";
         }
     }
 }

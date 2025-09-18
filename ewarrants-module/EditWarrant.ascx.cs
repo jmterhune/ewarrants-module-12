@@ -152,8 +152,8 @@ namespace tjc.Modules.eWarrants
                         CoverJudgeInfo = GetCoverJudge(objNotification.CoveringJudgeID);
                         judgeEmail = CoverJudgeInfo.Email;
                         coverJudgeName = CoverJudgeInfo.DisplayName;
-                        subject = $"New {warrantTypeName} Forwarded from  " + Judgeinfo.DisplayName.Replace(" ", " ") + " for Your Review";
-                        body = $"A new {warrantTypeName} (ID: {warrantId})  has been submitted by {UserInfo.DisplayName.Replace(" ", " ")} from {agencyName + Environment.NewLine + Environment.NewLine}" +
+                        subject = $"New {warrantTypeName} Forwarded from  " + Judgeinfo.DisplayName.Replace(" ", " ") + " for Your Review";
+                        body = $"A new {warrantTypeName} (ID: {warrantId})  has been submitted by {UserInfo.DisplayName.Replace(" ", " ")} from {agencyName + Environment.NewLine + Environment.NewLine}" +
                             $"{Judgeinfo.DisplayName.Replace(" & nbsp; ", " ")} is out of the office and has asked that {warrantTypeName} be forwarded to you during their absence.";
 
                         if (SendNow)
@@ -163,18 +163,18 @@ namespace tjc.Modules.eWarrants
                                 Mail.SendEmail(noreplyEmail, judgeProfileContact1, subject, body);
                             if (!string.IsNullOrEmpty(judgeProfileContact2) && judgeProfileContact2.Contains("@"))
                                 Mail.SendEmail(noreplyEmail, judgeProfileContact2, subject, body);
-                            if (HasUserOptedForSms())
-                                Helper.SendSmsNotifications(Judgeinfo, objSettings.TelnyxApiKey, objSettings.TelnyxPhoneNumber, subject, body);
+                            if (HasUserOptedForSms(objNotification.CoveringJudgeID))
+                                Helper.SendSmsNotifications(CoverJudgeInfo, subject, body);
                         }
                         subject = "Out of Office Notice";
-                        body = $"The Honorable {Judgeinfo.DisplayName.Replace(" ", " ")} is Out of the Office. {Environment.NewLine + Environment.NewLine}" +
+                        body = $"The Honorable {Judgeinfo.DisplayName.Replace(" ", " ")} is Out of the Office. {Environment.NewLine + Environment.NewLine}" +
                          $"Your {warrantTypeName} notification has been forwarded to the Honorable " + coverJudgeName;
                         Mail.SendEmail(noreplyEmail, leoEmail, subject, body);
                     }
                     else
                     {
                         subject = $"New {warrantTypeName} Submitted for Review";
-                        userDisplay = UserInfo.DisplayName.Replace(" ", " ");
+                        userDisplay = UserInfo.DisplayName.Replace(" ", " ");
                         body = $"A new {warrantTypeName} has been submitted by " + userDisplay + " from " + agencyName;
                         if (SendNow)
                         {
@@ -183,11 +183,11 @@ namespace tjc.Modules.eWarrants
                                 Mail.SendEmail(noreplyEmail, judgeProfileContact1, subject, body);
                             if (!string.IsNullOrEmpty(judgeProfileContact2) && judgeProfileContact2.Contains("@"))
                                 Mail.SendEmail(noreplyEmail, judgeProfileContact2, subject, body);
-                            if (HasUserOptedForSms())
-                                Helper.SendSmsNotifications(Judgeinfo, objSettings.TelnyxApiKey, objSettings.TelnyxPhoneNumber, subject, body);
+                            if (HasUserOptedForSms(Judgeinfo.UserID))
+                                Helper.SendSmsNotifications(Judgeinfo,  subject, body);
                         }
                         subject = "Out of Office Notice";
-                        body = " The Honorable " + Judgeinfo.DisplayName.Replace(" ", " ") + " is Out of the Office. Please review the notice below" + Environment.NewLine + Environment.NewLine;
+                        body = " The Honorable " + Judgeinfo.DisplayName.Replace(" ", " ") + " is Out of the Office. Please review the notice below" + Environment.NewLine + Environment.NewLine;
                         body += objNotification.Message;
                         Mail.SendEmail(noreplyEmail, leoEmail, subject, body);
                     }
@@ -195,7 +195,7 @@ namespace tjc.Modules.eWarrants
                 else
                 {
                     subject = $"New {warrantTypeName} Submitted for Review";
-                    userDisplay = UserInfo.DisplayName.Replace(" ", " ");
+                    userDisplay = UserInfo.DisplayName.Replace(" ", " ");
                     body = $"A new {warrantTypeName} (ID: " + warrantId + ") has been submitted by " + userDisplay + " from " + agencyName;
 
                     if (SendNow)
@@ -205,8 +205,8 @@ namespace tjc.Modules.eWarrants
                             Mail.SendEmail(noreplyEmail, judgeProfileContact1, subject, body);
                         if (!string.IsNullOrEmpty(judgeProfileContact2) && judgeProfileContact2.Contains("@"))
                             Mail.SendEmail(noreplyEmail, judgeProfileContact2, subject, body);
-                        if (HasUserOptedForSms())
-                            Helper.SendSmsNotifications(Judgeinfo, objSettings.TelnyxApiKey, objSettings.TelnyxPhoneNumber, subject, body);
+                        if (HasUserOptedForSms(Judgeinfo.UserID))
+                            Helper.SendSmsNotifications(Judgeinfo,  subject, body);
                     }
                 }
             }

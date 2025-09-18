@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.ComponentModel.DataAnnotations;
-using Atalasoft.Imaging.Codec;
+﻿using Atalasoft.Imaging.Codec;
 using DotNetNuke.Entities.Users;
+using DotNetNuke.Services.Mail;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Configuration;
+using System.Linq;
 
 namespace tjc.Modules.eWarrants.Components
 {
@@ -47,31 +49,38 @@ namespace tjc.Modules.eWarrants.Components
 
         public static string GetPhoneNumbersJson(UserInfo user)
         {
-            string phoneNumbers = user.Profile.GetPropertyValue("PhoneNumber");
+            string phoneNumbers = user.Profile.GetPropertyValue("SMSPhoneNumbers");
             if (string.IsNullOrEmpty(phoneNumbers))
                 return "[]";
-            var numbers = phoneNumbers.Split(new[] { "," }, StringSplitOptions.RemoveEmptyEntries)
-                                     .Select(n => n.Trim())
-                                     .Where(n => !string.IsNullOrEmpty(n))
-                                     .ToList();
+            var numbers = phoneNumbers.Split(new[] { ',' }).Where(n => !string.IsNullOrEmpty(n.Trim())).ToList();
             return JsonConvert.SerializeObject(numbers);
         }
 
-        public static async void SendSmsNotifications(UserInfo user, string apiKey, string fromPhoneNumber, string subject, string body)
+        public static bool SendSmsNotifications(UserInfo user, string subject, string body)
         {
-            if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(fromPhoneNumber))
-                return;
 
-            string phoneNumbersJson = GetPhoneNumbersJson(user);
-            var phoneNumbers = JsonConvert.DeserializeObject<List<string>>(phoneNumbersJson);
-            if (phoneNumbers != null && phoneNumbers.Count > 0)
+            try
             {
-                var smsService = new TelnyxSmsService(apiKey, fromPhoneNumber);
-                foreach (var number in phoneNumbers)
+                string phoneNumbersJson = GetPhoneNumbersJson(user);
+                var phoneNumbers = JsonConvert.DeserializeObject<List<string>>(phoneNumbersJson);
+                if (phoneNumbers != null && phoneNumbers.Count > 0)
                 {
-                    await smsService.SendSmsAsync(number, body);
+
+                    var smsService = new Components.MicrosoftSmsSender();
+                    smsService.SendSmsToMultiple(phoneNumbers, subject + " - " + body);
                 }
+                return true;
             }
+            catch (Exception ex)
+            {
+                DotNetNuke.Services.Exceptions.Exceptions.LogException(ex);
+                return false;
+            }
+        }
+        public static void SendToAlternateContact(string replyEmail, string contactPoint, string subject, string body)
+        {
+            if (!string.IsNullOrEmpty(contactPoint) && contactPoint.Contains("@"))
+                Mail.SendEmail(replyEmail, contactPoint, subject, body);
         }
     }
 }

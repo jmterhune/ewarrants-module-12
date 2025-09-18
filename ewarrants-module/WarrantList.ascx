@@ -27,7 +27,6 @@
                     <button id="cmdRefresh" class="btn btn-success"><em class="fas fa-sync-alt"></em> Refresh List</button>
                     <asp:CheckBox ID="chkShowAssigned" CssClass="checker" AutoPostBack="true" OnCheckedChanged="chkShowAssigned_CheckedChanged" runat="server" Visible="false" Checked="true" Text="Show Only My warrants" />
                     <asp:CheckBox ID="chkTouchViewer" CssClass="ms-2 checker" AutoPostBack="true" OnCheckedChanged="chkTouchViewer_CheckedChanged" runat="server" Visible="false" Text="Alternate Viewer" />
-                    <a href="#" id="lnkSmsPreferences" class="ms-2" data-bs-toggle="modal" data-bs-target="#smsOptInModal">Manage SMS Preferences</a>
                 </div>
             </div>
             <asp:Repeater runat="server" ID="rptWarrants" OnItemCreated="rptWarrants_ItemCreated" OnItemCommand="rptWarrants_ItemCommand" OnItemDataBound="rptWarrants_ItemDataBound">
@@ -116,44 +115,6 @@
         </ul>
     </div>
 
-    <!-- SMS Opt-In Modal -->
-    <div class="modal fade" id="smsOptInModal" tabindex="-1" aria-labelledby="smsOptInModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="smsOptInModalLabel">SMS Notification Preferences</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <asp:UpdatePanel ID="upSmsModal" runat="server">
-                    <ContentTemplate>
-                        <div class="modal-body">
-                            <div id="phoneNumbersContainer">
-                                <div class="form-group mb-3 phone-number-group">
-                                    <asp:Label ID="lblPhoneNumber" runat="server" AssociatedControlID="txtPhoneNumber" CssClass="control-label">Phone Number (e.g., +1234567890):</asp:Label>
-                                    <div class="input-group">
-                                        <asp:TextBox ID="txtPhoneNumber" runat="server" CssClass="form-control phone-number-input" Placeholder="Enter phone number in international format" />
-                                        <button type="button" class="btn btn-outline-danger remove-phone" style="display:none;"><em class="fa fa-trash"></em></button>
-                                    </div>
-                                </div>
-                            </div>
-                            <asp:Label ID="lblPhoneError" runat="server" CssClass="text-danger" Visible="false"></asp:Label>
-                            <button type="button" id="btnAddPhone" class="btn btn-outline-primary mb-3">Add Another Phone Number</button>
-                            <div class="form-check mb-3">
-                                <asp:CheckBox ID="chkSmsConsent" runat="server" CssClass="form-check-input" />
-                                <asp:Label ID="lblSmsConsent" runat="server" AssociatedControlID="chkSmsConsent" CssClass="form-check-label">
-                                    I agree to receive SMS notifications (e.g., warrant updates, alerts). Up to 5 messages per month. Msg & data rates may apply. Reply STOP to unsubscribe.
-                                </asp:Label>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <asp:Button ID="btnOptOut" runat="server" Text="Opt Out" CssClass="btn btn-secondary" OnClick="btnOptOut_Click" CausesValidation="false" />
-                            <asp:Button ID="btnSaveOptIn" runat="server" Text="Save" CssClass="btn btn-primary" OnClick="btnSaveOptIn_Click" />
-                        </div>
-                    </ContentTemplate>
-                </asp:UpdatePanel>
-            </div>
-        </div>
-    </div>
 </div>
 
 <dnn:DnnCssInclude runat="server" FilePath="~/Resources/Shared/components/TimePicker/Themes/jquery-ui.min.css" />
@@ -189,57 +150,6 @@
                 if (p_counties.indexOf("desoto") < 0) { $("#ddl").toggle(); }
             } else {
                 $("#juvpickupForm").hide();
-            }
-
-            // Check if user needs to opt in/out for SMS
-            var hasOpted = '<%= HasUserOptedForSms() ? "true" : "false" %>';
-            if (hasOpted === "false") {
-                $('#smsOptInModal').modal('show');
-            }
-
-            // Populate existing phone numbers
-            var phoneNumbers = '<%= GetPhoneNumbersJson() %>';
-            if (phoneNumbers) {
-                var numbers = JSON.parse(phoneNumbers);
-                if (numbers.length > 0) {
-                    $('#phoneNumbersContainer').empty();
-                    numbers.forEach(function (number) {
-                        addPhoneNumberField(number);
-                    });
-                }
-            }
-
-            // Handle adding new phone number fields
-            $('#btnAddPhone').on('click', function () {
-                addPhoneNumberField('');
-            });
-
-            // Handle removing phone number fields
-            $(document).on('click', '.remove-phone', function () {
-                if ($('.phone-number-group').length > 1) {
-                    $(this).closest('.phone-number-group').remove();
-                }
-            });
-
-            // Update remove button visibility
-            function updateRemoveButtons() {
-                $('.remove-phone').each(function () {
-                    $(this).toggle($('.phone-number-group').length > 1);
-                });
-            }
-
-            // Add phone number field
-            function addPhoneNumberField(number) {
-                var newField = `
-                    <div class="form-group mb-3 phone-number-group">
-                        <label class="control-label">Phone Number (e.g., +1234567890):</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control phone-number-input" value="${number}" placeholder="Enter phone number in international format" />
-                            <button type="button" class="btn btn-outline-danger remove-phone"><em class="fa fa-trash"></em></button>
-                        </div>
-                    </div>`;
-                $('#phoneNumbersContainer').append(newField);
-                updateRemoveButtons();
             }
         });
     }

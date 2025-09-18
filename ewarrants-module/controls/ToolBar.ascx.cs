@@ -17,6 +17,7 @@ namespace tjc.Modules.eWarrants.controls
         public bool AgencyUserIsAdmin { get; set; }
         public string NavJudgeSign { get; set; }
         public string NavAdminAgency { get; set; }
+        public string NavSms { get; set; }
         public string NavClerkFTP { get; set; }
         public string NavAdminCounty { get; set; }
         public string NavManageUsers { get; set; }
@@ -41,6 +42,7 @@ namespace tjc.Modules.eWarrants.controls
         {
             if (!IsPostBack)
             {
+                lnkSms.NavigateUrl = NavSms;
                 if (JudgeRoleName == "" || AdminJudge == "" || SergeantRoleName == "")
                 {
                     tbGroup.Visible = false;
@@ -101,6 +103,7 @@ namespace tjc.Modules.eWarrants.controls
                 if (IsJudge)
                 {
                     lnkWarrant.Visible = false;
+                    lnkSms.Visible = true;
                     lnkRPO.Visible = false;
                     lnkUsers.Visible = false;
                     lnkOutofOffice.Visible = true;

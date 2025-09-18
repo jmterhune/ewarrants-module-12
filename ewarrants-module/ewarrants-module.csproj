@@ -78,6 +78,12 @@
       <HintPath>..\..\..\..\websites\eWarrants Portal Interface\eWarrants-site\bin\Atalasoft.PdfDoc.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Azure.Communication.Sms, Version=1.0.1.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>..\packages\Azure.Communication.Sms.1.0.1\lib\netstandard2.0\Azure.Communication.Sms.dll</HintPath>
+    </Reference>
+    <Reference Include="Azure.Core, Version=1.14.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
+      <HintPath>..\packages\Azure.Core.1.14.0\lib\net461\Azure.Core.dll</HintPath>
+    </Reference>
     <Reference Include="DotNetNuke, Version=7.0.2.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\ewarrants-site\bin\DotNetNuke.dll</HintPath>
@@ -197,6 +203,9 @@
       <HintPath>..\packages\System.Data.SqlClient.4.9.0\lib\net462\System.Data.SqlClient.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System.Diagnostics.DiagnosticSource, Version=4.0.4.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Diagnostics.DiagnosticSource.4.6.0\lib\net46\System.Diagnostics.DiagnosticSource.dll</HintPath>
+    </Reference>
     <Reference Include="System.Diagnostics.EventLog, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Diagnostics.EventLog.7.0.0\lib\net462\System.Diagnostics.EventLog.dll</HintPath>
       <Private>False</Private>
@@ -227,6 +236,9 @@
     <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Memory.Data, Version=1.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Memory.Data.1.0.2\lib\net461\System.Memory.Data.dll</HintPath>
     </Reference>
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http" />
@@ -279,8 +291,8 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
-      <Private>False</Private>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\websites\eWarrants-site\bin\System.Threading.Tasks.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
@@ -288,9 +300,9 @@
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Web.Http, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
-      <Private>False</Private>
-      <HintPath>..\ewarrants-site\bin\System.Web.Http.dll</HintPath>
+    <Reference Include="System.Web.Http, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\websites\eWarrants Portal Interface\eWarrants-site\bin\System.Web.Http.dll</HintPath>
     </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -301,9 +313,6 @@
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="Twilio, Version=7.11.3.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Twilio.7.11.3\lib\net462\Twilio.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Blank.aspx.cs">
@@ -321,6 +330,7 @@
     <Compile Include="Components\HttpRoutingMapper.cs" />
     <Compile Include="Components\ImageProcessing.cs" />
     <Compile Include="Components\IRemoteFileSystemContext.cs" />
+    <Compile Include="Components\MicrosoftSmsSender.cs" />
     <Compile Include="Components\NotificationController.cs" />
     <Compile Include="Components\Notification.cs" />
     <Compile Include="Components\AttachmentController.cs" />
@@ -333,8 +343,6 @@
     <Compile Include="Components\scheduleJudgeNotifications.cs" />
     <Compile Include="Components\scheduleLeoNotification.cs" />
     <Compile Include="Components\scheduleAttachmentCleanup.cs" />
-    <Compile Include="Components\TelnyxSmsService.cs" />
-    <Compile Include="Components\TwilioSmsSerice.cs" />
     <Compile Include="Components\ViewStateBase.cs">
       <SubType>ASPXCodeBehind</SubType>
     </Compile>
@@ -516,6 +524,13 @@
     <Compile Include="Settings.ascx.designer.cs">
       <DependentUpon>Settings.ascx</DependentUpon>
     </Compile>
+    <Compile Include="SMS.ascx.cs">
+      <DependentUpon>SMS.ascx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="SMS.ascx.designer.cs">
+      <DependentUpon>SMS.ascx</DependentUpon>
+    </Compile>
     <Compile Include="WarrantList.ascx.cs">
       <DependentUpon>WarrantList.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>
@@ -613,6 +628,7 @@
     <Content Include="module.css" />
     <Content Include="ReleaseNotes.txt" />
     <Content Include="Settings.ascx" />
+    <Content Include="SMS.ascx" />
     <Content Include="WarrantList.ascx" />
   </ItemGroup>
   <ItemGroup>

@@ -1,12 +1,13 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="EditWarrant.ascx.cs" Inherits="tjc.Modules.eWarrants.EditWarrant" %>
 <%@ Register TagPrefix="dnn" TagName="Label" Src="~/controls/LabelControl.ascx" %>
+<%@ Import Namespace="System.Web.Helpers" %>
 <div class="dnnForm dnnClear">
     <div class="dnnFormItem dnnFormHelp dnnClear">
         <span class="dnnFormRequired"><%=Localization.GetString("RequiredFields", Localization.SharedResourceFile)%></span>
     </div>
 
     <asp:Panel ID="pnlWarrant" runat="server">
-
+       <%= System.Web.Helpers.AntiForgery.GetHtml() %>
         <h2 id="dnnPanel-Warrants" class="dnnFormSectionHead">Select File to Upload</h2>
 
         <div class="filebox">
@@ -182,7 +183,6 @@
         $('[data-toggle="tooltip"]').tooltip();
         $('.fileUpload').click(function () { $("#upload-overlay").show(); });
         $("#<%=cmdUpload.ClientID%>").click(function (evt) {
-            //$("#upload-overlay").show();
             var fileUpload = $("#<%=uplWarrant.ClientID%>").get(0);
             var files = fileUpload.files;
             if (files.length == 0) {

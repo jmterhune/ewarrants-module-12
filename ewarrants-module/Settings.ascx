@@ -118,19 +118,15 @@
 
     </fieldset>
 
-    <h2 class="dnnFormSectionHead"><a href="#">Twilio SMS Settings</a></h2>
+    <h2 class="dnnFormSectionHead"><a href="#">Telnyx SMS Settings</a></h2>
     <fieldset class="dnnClear">
         <div class="dnnFormItem">
-            <dnn:label id="lblTwilioAccountSid" runat="server" controlname="txtTwilioAccountSid" suffix=":" text="Account SID"></dnn:label>
-            <asp:TextBox ID="txtTwilioAccountSid" runat="server" MaxLength="50"></asp:TextBox>
+            <dnn:label id="lblTelnyxApiKey" runat="server" controlname="txtTelnyxApiKey" suffix=":" text="Auth Token"></dnn:label>
+            <asp:TextBox ID="txtTelnyxApiKey" runat="server" MaxLength="50"></asp:TextBox>
         </div>
         <div class="dnnFormItem">
-            <dnn:label id="lblTwilioAuthToken" runat="server" controlname="txtTwilioAuthToken" suffix=":" text="Auth Token"></dnn:label>
-            <asp:TextBox ID="txtTwilioAuthToken" runat="server" MaxLength="50"></asp:TextBox>
-        </div>
-        <div class="dnnFormItem">
-            <dnn:label id="lblTwilioPhoneNumber" runat="server" controlname="txtTwilioPhoneNumber" suffix=":" text="Phone Number"></dnn:label>
-            <asp:TextBox ID="txtTwilioPhoneNumber" runat="server" MaxLength="50"></asp:TextBox>
+            <dnn:label id="lblTelnyxPhoneNumber" runat="server" controlname="txtTelnyxPhoneNumber" suffix=":" text="Phone Number"></dnn:label>
+            <asp:TextBox ID="txtTelnyxPhoneNumber" runat="server" MaxLength="50"></asp:TextBox>
         </div>
     </fieldset>
 </div>
