@@ -117,17 +117,4 @@
         </div>
 
     </fieldset>
-
-    <h2 class="dnnFormSectionHead"><a href="#">Telnyx SMS Settings</a></h2>
-    <fieldset class="dnnClear">
-        <div class="dnnFormItem">
-            <dnn:label id="lblTelnyxApiKey" runat="server" controlname="txtTelnyxApiKey" suffix=":" text="Auth Token"></dnn:label>
-            <asp:TextBox ID="txtTelnyxApiKey" runat="server" MaxLength="50"></asp:TextBox>
-        </div>
-        <div class="dnnFormItem">
-            <dnn:label id="lblTelnyxPhoneNumber" runat="server" controlname="txtTelnyxPhoneNumber" suffix=":" text="Phone Number"></dnn:label>
-            <asp:TextBox ID="txtTelnyxPhoneNumber" runat="server" MaxLength="50"></asp:TextBox>
-        </div>
-    </fieldset>
 </div>
-

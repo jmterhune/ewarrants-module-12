@@ -53,15 +53,28 @@ namespace tjc.Modules.eWarrants
             }
         }
         public bool HasUserOptedForSms(int userId)
-        { bool hasConsent = false;
-            var user = UserController.Instance.GetUserById(PortalId,userId);
+        {
+            bool hasConsent = false;
+            var user = UserController.Instance.GetUserById(PortalId, userId);
             if (user.IsInRole(JudgeRole))
             {
                 string smsConsent = user.Profile.GetPropertyValue("SmsConsent");
                 bool.TryParse(smsConsent, out hasConsent);
                 return hasConsent;
             }
-            return hasConsent; 
+            return hasConsent;
+        }
+        public bool HasUserOptedForSms()
+        {
+            bool hasConsent = false;
+            var user = UserInfo != null ? UserInfo : new UserInfo();
+            if (UserInfo.IsInRole(JudgeRole))
+            {
+                string smsConsent = user.Profile.GetPropertyValue("SmsConsent");
+                bool.TryParse(smsConsent, out hasConsent);
+                return hasConsent;
+            }
+            return hasConsent;
         }
         public int AgencyId
         {

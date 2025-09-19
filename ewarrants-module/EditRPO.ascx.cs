@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web.UI.WebControls;
 using tjc.Modules.eWarrants.Components;
 
@@ -18,45 +17,34 @@ namespace tjc.Modules.eWarrants
 {
     public partial class EditRPO : ewarrantsModuleBase
     {
-        private readonly INavigationManager _navigationManager;
         private string coverJudgeName = "";
         private bool isOutofOffice = false;
-        private UserInfo Judgeinfo;
-
-        public string UploadHandler => TemplateSourceDirectory + "/Handlers/WarrantHandler.ashx";
-        public string AttachmentHandler => TemplateSourceDirectory + "/Handlers/AttachmentHandler.ashx";
-
+        private UserInfo Judgeinfo = null;
+        public string uploadHandler = "";
+        public string attachmentHandler = "";
+        private readonly INavigationManager _navigationManager;
         public EditRPO()
         {
             _navigationManager = DependencyProvider.GetRequiredService<INavigationManager>();
         }
-
         private void BindCountyList(int agencyId)
         {
-            try
+            var ctl = new AgencyController();
+            Agency objAgency = ctl.GetAgency(agencyId, ModuleId);
+            if (objAgency.Counties.Count() > 0)
             {
-                var ctl = new AgencyController();
-                Agency objAgency = ctl.GetAgency(agencyId, ModuleId);
-                if (objAgency == null || !objAgency.Counties.Any())
-                {
-                    DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Your agency's county list is not properly configured. Please contact your site administrator.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
-                    return;
-                }
-
-                foreach (County c in objAgency.Counties)
+                foreach (County c in (objAgency.Counties))
                 {
                     drpCounty.Items.Add(new ListItem(c.CountyName, c.CountyID.ToString()));
                 }
                 drpCounty.Items.Insert(0, new ListItem("< Select County >", ""));
-                divCounty.Visible = drpCounty.Items.Count > 2;
-                if (drpCounty.Items.Count == 2)
+                if (drpCounty.Items.Count > 2)
+                    divCounty.Visible = true;
+                else
                     drpCounty.SelectedIndex = 1;
             }
-            catch (Exception exc)
-            {
-                Exceptions.ProcessModuleLoadException(this, exc);
-                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Error loading county list. Please try again or contact support.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
-            }
+            else
+                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Your agencies county list has not been properly configured.  Please contact your site administrator with this message.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
         }
 
         private UserInfo GetCoverJudge(int coverJudgeId)
@@ -66,230 +54,208 @@ namespace tjc.Modules.eWarrants
 
         private void SendEmailResponse(string agencyName, string warrantId)
         {
-            try
-            {
-                string noreplyEmail = "webhelp@jud12.flcourts.org";
-                string leoEmail = UserInfo != null ? UserInfo.Email : throw new InvalidOperationException("User email not available.");
-                var sCtl = new SettingController();
-                Setting objSettings = sCtl.GetSettings(ModuleId);
-                if (objSettings != null)
-                    noreplyEmail = objSettings.SenderEmail;
-
-                if (!Int32.TryParse(hdJudgeId.Value, out int judgeId))
-                {
-                    DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Invalid judge ID. No notification sent.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
-                    return;
-                }
-
+            string noreplyEmail = "webhelp@jud12.flcourts.org";
+            string leoEmail = UserInfo.Email;
+            if (Int32.TryParse(hdJudgeId.Value, out int judgeId))
                 Judgeinfo = UserController.GetUserById(PortalId, judgeId);
-                if (Judgeinfo == null)
-                {
-                    DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "The selected judge's record could not be found. No email notification can be sent.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
-                    return;
-                }
-
+            var sCtl = new SettingController();
+            Setting objSettings = sCtl.GetSettings(ModuleId);
+            if (objSettings != null)
+                noreplyEmail = objSettings.SenderEmail;
+            UserInfo CoverJudgeInfo = null;
+            string warrantTypeName = "RPO";
+            if (Judgeinfo != null)
+            {
                 string judgeEmail = Judgeinfo.Email;
-                string warrantTypeName = "RPO";
-                string subject, body, userDisplay;
+                var nCtl = new NotificationController();
+                IEnumerable<Notification> colNotifications = nCtl.GetCurrentNotificationsByJudge(Judgeinfo.UserID);
+                string subject;
+                string body;
+                string userDisplay;
                 string judgeProfileContact1 = Helper.GetProfileValue(Judgeinfo, "Email2");
                 string judgeProfileContact2 = Helper.GetProfileValue(Judgeinfo, "Email3");
-                var nCtl = new NotificationController();
-                var colNotifications = nCtl.GetCurrentNotificationsByJudge(Judgeinfo.UserID);
-
-                if (colNotifications != null && colNotifications.Any())
+                if (colNotifications.Count() > 0)
                 {
                     Notification objNotification = colNotifications.FirstOrDefault();
                     if (objNotification.CoveringJudgeID > 0)
                     {
-                        var coverJudgeInfo = GetCoverJudge(objNotification.CoveringJudgeID);
-                        coverJudgeName = coverJudgeInfo != null ? coverJudgeInfo.DisplayName : "";
-                        judgeEmail = coverJudgeInfo != null ? coverJudgeInfo.Email : judgeEmail;
-                        subject = "New " + warrantTypeName + " Forwarded from " + Judgeinfo.DisplayName.Replace(" ", " ") + " for Your Review";
-                        userDisplay = UserInfo.DisplayName.Replace(" ", " ");
-                        body = "A new " + warrantTypeName + " (ID: " + warrantId + ") has been submitted by " + userDisplay + " from " + agencyName + Environment.NewLine;
-                        body += Judgeinfo.DisplayName.Replace(" ", " ") + " is out of the office and has asked that this " + warrantTypeName + " be forwarded to you during their absence.";
-                        Mail.SendEmail(noreplyEmail, judgeEmail, subject, body);
-                        Helper.SendToAlternateContact(noreplyEmail, judgeProfileContact1, subject, body);
-                        Helper.SendToAlternateContact(noreplyEmail, judgeProfileContact2, subject, body);
+                        CoverJudgeInfo = GetCoverJudge(objNotification.CoveringJudgeID);
+                        coverJudgeName = CoverJudgeInfo.DisplayName;
+                        judgeEmail = CoverJudgeInfo.Email;
+                        subject = "New " + warrantTypeName + " Forwarded from  " + Judgeinfo.DisplayName.Replace(" ", " ") + " for Your Review";
+                        userDisplay = UserInfo.DisplayName.Replace(" ", " ");
+                        body = "A new " + warrantTypeName + " (ID: " + warrantId + ")  has been submitted by " + userDisplay + " from " + agencyName + Environment.NewLine;
+                        body += Judgeinfo.DisplayName.Replace(" ", " ") + " is out of the office and has asked that this " + warrantTypeName + " be forwarded to you during their absence.";
+                        DotNetNuke.Services.Mail.Mail.SendEmail(leoEmail, noreplyEmail, judgeEmail, subject, body);
+                        if (!string.IsNullOrEmpty(judgeProfileContact1) && judgeProfileContact1.Contains("@"))
+                            DotNetNuke.Services.Mail.Mail.SendEmail(noreplyEmail, judgeProfileContact1, subject, body);
+                        if (!string.IsNullOrEmpty(judgeProfileContact2) && judgeProfileContact2.Contains("@"))
+                            Mail.SendEmail(noreplyEmail, judgeProfileContact2, subject, body);
                         if (HasUserOptedForSms(objNotification.CoveringJudgeID))
-                        {
-                            Task.Run(() => Helper.SendSmsNotifications(coverJudgeInfo, subject, body)).GetAwaiter().GetResult();
-                        }
-
+                            Helper.SendSmsNotifications(CoverJudgeInfo,  subject, body);
                         subject = "Out of Office Notice";
-                        body = "The Honorable " + Judgeinfo.DisplayName.Replace(" ", " ") + " is Out of the Office." + Environment.NewLine;
+                        body = " The Honorable " + Judgeinfo.DisplayName.Replace(" ", " ") + " is Out of the Office. " + Environment.NewLine;
                         body += "Your " + warrantTypeName + " notification has been forwarded to the Honorable " + coverJudgeName;
-                        Mail.SendEmail(noreplyEmail, leoEmail, subject, body);
-                        isOutofOffice = true;
+                        DotNetNuke.Services.Mail.Mail.SendEmail(noreplyEmail, leoEmail, subject, body);
                     }
                     else
                     {
                         subject = "New " + warrantTypeName + " Submitted for Review";
-                        userDisplay = UserInfo.DisplayName.Replace(" ", " ");
+                        userDisplay = UserInfo.DisplayName.Replace(" ", " ");
                         body = "A new " + warrantTypeName + " has been submitted by " + userDisplay + " from " + agencyName;
-                        Mail.SendEmail(noreplyEmail, judgeEmail, subject, body);
-                        Helper.SendToAlternateContact(noreplyEmail, judgeProfileContact1, subject, body);
-                        Helper.SendToAlternateContact(noreplyEmail, judgeProfileContact2, subject, body);
+                        DotNetNuke.Services.Mail.Mail.SendEmail(leoEmail, noreplyEmail, judgeEmail, subject, body);
+                        if (!string.IsNullOrEmpty(judgeProfileContact1) && judgeProfileContact1.Contains("@"))
+                            DotNetNuke.Services.Mail.Mail.SendEmail(noreplyEmail, judgeProfileContact1, subject, body);
+                        if (!string.IsNullOrEmpty(judgeProfileContact2) && judgeProfileContact2.Contains("@"))
+                            DotNetNuke.Services.Mail.Mail.SendEmail(noreplyEmail, judgeProfileContact2, subject, body);
                         if (HasUserOptedForSms(Judgeinfo.UserID))
-                        {
-                            Task.Run(() => Helper.SendSmsNotifications(Judgeinfo, subject, body)).GetAwaiter().GetResult();
-                        }
-
+                            Helper.SendSmsNotifications(Judgeinfo, subject, body);
                         subject = "Out of Office Notice";
-                        body = "The Honorable " + Judgeinfo.DisplayName.Replace(" ", " ") + " is Out of the Office. Please review the notice below" + Environment.NewLine;
+                        body = " The Honorable " + Judgeinfo.DisplayName.Replace(" ", " ") + " is Out of the Office. Please review the notice below" + Environment.NewLine;
                         body += objNotification.Message;
-                        Mail.SendEmail(noreplyEmail, leoEmail, subject, body);
-                        isOutofOffice = true;
+                        DotNetNuke.Services.Mail.Mail.SendEmail(noreplyEmail, leoEmail, subject, body);
                     }
                 }
                 else
                 {
                     subject = "New " + warrantTypeName + " Submitted for Review";
-                    userDisplay = UserInfo.DisplayName.Replace(" ", " ");
+                    userDisplay = UserInfo.DisplayName.Replace(" ", " ");
                     body = "A new " + warrantTypeName + " (ID: " + warrantId + ") has been submitted by " + userDisplay + " from " + agencyName;
-                    Mail.SendEmail(noreplyEmail, judgeEmail, subject, body);
-                    Helper.SendToAlternateContact(noreplyEmail, judgeProfileContact1, subject, body);
-                    Helper.SendToAlternateContact(noreplyEmail, judgeProfileContact2, subject, body);
+                    DotNetNuke.Services.Mail.Mail.SendEmail(leoEmail, noreplyEmail, judgeEmail, subject, body);
+                    if (!string.IsNullOrEmpty(judgeProfileContact1) && judgeProfileContact1.Contains("@"))
+                        DotNetNuke.Services.Mail.Mail.SendEmail(noreplyEmail, judgeProfileContact1, subject, body);
+                    if (!string.IsNullOrEmpty(judgeProfileContact2) && judgeProfileContact2.Contains("@"))
+                        DotNetNuke.Services.Mail.Mail.SendEmail(noreplyEmail, judgeProfileContact2, subject, body);
                     if (HasUserOptedForSms(Judgeinfo.UserID))
-                    {
-                        Task.Run(() => Helper.SendSmsNotifications(Judgeinfo, subject, body)).GetAwaiter().GetResult();
-                    }
+                        Helper.SendSmsNotifications(Judgeinfo,  subject, body);
                 }
             }
-            catch (Exception exc)
-            {
-                Exceptions.ProcessModuleLoadException(this, exc);
-                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Error sending email notifications. Please try again or contact support.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
-            }
+            else
+                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "The selected Judge's record could not be found. No email notification can be sent", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
         }
 
         private byte[] GetImage(int id)
         {
-            try
-            {
-                var ctl = new FileController();
-                Components.File objWarrantImage = ctl.GetFile(id);
-                if (objWarrantImage == null)
-                    throw new InvalidOperationException("Warrant image not found.");
-                return objWarrantImage.Bytes;
-            }
-            catch (Exception exc)
-            {
-                Exceptions.LogException(exc);
-                throw;
-            }
+            var ctl = new FileController();
+            Components.File objWarrantImage = ctl.GetFile(id);
+            return objWarrantImage.Bytes;
         }
 
         private void SendRPOHearingNotifications(string county, Warrant objWarrant, List<string> attachments)
         {
-            PdfImageCollection col = null;
+            string respondent = objWarrant.Defendant;
+            var leoUser = UserController.Instance.GetUserById(PortalId, objWarrant.CreatedByUserID);
+            string leo = leoUser.DisplayName;
+            string agency = objWarrant.Agency.AgencyName;
+            string[] EmailString = Array.Empty<string>();
+            if (!string.IsNullOrEmpty(RPO_CC_Email))
+                EmailString = RPO_CC_Email.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
+            string warrantTitle = objWarrant.Title;
+            PdfImageCollection col = new PdfImageCollection();
+            byte[] imageData = GetImage(objWarrant.FileID);
+            RegisteredDecoders.Decoders.Add(new Atalasoft.Imaging.Codec.Pdf.PdfDecoder());
+            int pages = RegisteredDecoders.GetImageInfo(new MemoryStream(imageData)).FrameCount;
+            // Add all pages from a multipage TIFF.
+            for (int i = 0; i <= pages - 1; i++)
+                col.Add(new PdfImage(new MemoryStream(imageData), i, PdfCompressionType.Auto));
+
+            // Create the PDF.
+            PdfEncoder pdf = new PdfEncoder();
+            // Set any properties.
+            pdf.JpegQuality = 85;
+            pdf.Metadata = new PdfMetadata(warrantTitle, "Circuit Court", "RPO File", "", "", "", DateTime.Now, DateTime.Now);
+            // Make each image fit into an 8.5 x 11 inch page (612 x 792 @ 72 DPI).
+            pdf.SizeMode = PdfPageSizeMode.FitToPage;
+            pdf.PageSize = new Size(612, 792);
+            byte[] pdfBytes = pdf.ToByteArray(col, null);
+            IEnumerable<string> emailList = null;
+            switch (county.ToLower())
+            {
+                case "manatee":
+                    {
+                        emailList = EmailString.Union(RPO_ManateeEmai.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries));
+                        break;
+                    }
+
+                case "desoto":
+                    {
+                        emailList = EmailString.Union(RPO_DeSotoEmail.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries));
+                        break;
+                    }
+
+                case "sarasota":
+                    {
+                        emailList = EmailString.Union(RPO_SarasotaEmail.Split(new[] { ";" }, StringSplitOptions.RemoveEmptyEntries));
+                        break;
+                    }
+            }
+
+            List<DotNetNuke.Services.Mail.MailAttachment> emailAttach = new List<DotNetNuke.Services.Mail.MailAttachment>();
+            foreach (var a in attachments)
+            {
+                DotNetNuke.Services.Mail.MailAttachment attach = new DotNetNuke.Services.Mail.MailAttachment(a);
+                emailAttach.Add(attach);
+            }
+            emailAttach.Add(new DotNetNuke.Services.Mail.MailAttachment(string.Format("rpo-{0}.pdf", WarrantId), pdfBytes, "application/pdf"));
+            ICollection<DotNetNuke.Services.Mail.MailAttachment> colAttachments = emailAttach;
+            string noreplyEmail = "webhelp@jud12.flcourts.org";
+            string toAddress = string.Join(",", emailList);
+            string subject = "12th Circuit Court RPO Notification";
+            string body = "<p><strong>Submitted By:</strong> " + leo + " from " + agency + " </p><p><strong>Respondent: </strong>" + respondent + "</p><p>Submitted RPO Attached</p>";
+            SettingController sCtl = new SettingController();
+            Setting objSettings = sCtl.GetSettings(ModuleId);
+            if (objSettings != null)
+                noreplyEmail = objSettings.SenderEmail;
             try
             {
-                if (objWarrant == null || string.IsNullOrEmpty(objWarrant.Defendant))
-                    throw new ArgumentNullException("objWarrant");
-                var leoUser = UserController.Instance.GetUserById(PortalId, objWarrant.CreatedByUserID);
-                if (leoUser == null)
-                    throw new InvalidOperationException("LEO user not found.");
-                string leo = leoUser.DisplayName;
-                string agency = objWarrant.Agency != null ? objWarrant.Agency.AgencyName : throw new InvalidOperationException("Agency not found.");
-                string warrantTitle = objWarrant.Title;
-                string[] emailString = string.IsNullOrEmpty(RPO_CC_Email) ? new string[0] : RPO_CC_Email.Split(new[] { ';' }).Where(s => !string.IsNullOrEmpty(s)).ToArray();
-
-                col = new PdfImageCollection();
-                byte[] imageData = GetImage(objWarrant.FileID);
-                Helper.AddPdfDecoder();
-                int pages = RegisteredDecoders.GetImageInfo(new MemoryStream(imageData)).FrameCount;
-
-                for (int i = 0; i < pages; i++)
-                    col.Add(new PdfImage(new MemoryStream(imageData), i, PdfCompressionType.Auto));
-
-                var pdf = new PdfEncoder
-                {
-                    JpegQuality = 85,
-                    SizeMode = PdfPageSizeMode.FitToPage,
-                    PageSize = new Size(612, 792)
-                };
-                pdf.Metadata = new PdfMetadata(warrantTitle, "Circuit Court", "RPO File", "", "", "", DateTime.Now, DateTime.Now);
-                byte[] pdfBytes = pdf.ToByteArray(col, null);
-
-                IEnumerable<string> emailList = null;
-                switch (county.ToLower())
-                {
-                    case "manatee":
-                        emailList = emailString.Union(RPO_ManateeEmai.Split(new[] { ';' }).Where(s => !string.IsNullOrEmpty(s)));
-                        break;
-                    case "desoto":
-                        emailList = emailString.Union(RPO_DeSotoEmail.Split(new[] { ';' }).Where(s => !string.IsNullOrEmpty(s)));
-                        break;
-                    case "sarasota":
-                        emailList = emailString.Union(RPO_SarasotaEmail.Split(new[] { ';' }).Where(s => !string.IsNullOrEmpty(s)));
-                        break;
-                    default:
-                        throw new ArgumentException("Invalid county: " + county);
-                }
-
-                var emailAttach = new List<DotNetNuke.Services.Mail.MailAttachment>();
-                foreach (var attachment in attachments ?? new List<string>())
-                {
-                    emailAttach.Add(new DotNetNuke.Services.Mail.MailAttachment(attachment));
-                }
-                emailAttach.Add(new DotNetNuke.Services.Mail.MailAttachment("rpo-" + WarrantId + ".pdf", pdfBytes, "application/pdf"));
-
-                string noreplyEmail = "webhelp@jud12.flcourts.org";
-                var sCtl = new SettingController();
-                Setting objSettings = sCtl.GetSettings(ModuleId);
-                if (objSettings != null)
-                    noreplyEmail = objSettings.SenderEmail;
-
-                string toAddress = string.Join(",", emailList);
-                string subject = "12th Circuit Court RPO Notification";
-                string body = "<p><strong>Submitted By:</strong> " + leo + " from " + agency + "</p><p><strong>Respondent:</strong> " + objWarrant.Defendant + "</p><p>Submitted RPO Attached</p>";
-
-                Mail.SendEmail(noreplyEmail, noreplyEmail, toAddress.Trim(), subject, body, emailAttach);
+                DotNetNuke.Services.Mail.Mail.SendEmail(noreplyEmail, noreplyEmail, toAddress.Trim(), subject, body, colAttachments);
             }
             catch (Exception exc)
             {
                 Exceptions.ProcessModuleLoadException(this, exc);
-                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Error sending RPO hearing notifications. Please try again or contact support.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
             }
         }
 
-        protected void Page_Load(object sender, EventArgs e)
+        protected void Page_Load(System.Object sender, System.EventArgs e)
         {
             try
             {
-                if (!Page.IsPostBack)
+                uploadHandler = TemplateSourceDirectory + "/Handlers/WarrantHandler.ashx";
+                attachmentHandler = TemplateSourceDirectory + "/Handlers/AttachmentHandler.ashx";
+                if (Page.IsPostBack == false)
                 {
                     if (string.IsNullOrEmpty(JudgeRoleName))
                     {
-                        DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "The application has not been configured. Please contact the site administrator.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
+                        DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "The Application has not been configured. Please contact the site administrator", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
                         pnlRPO.Visible = false;
                         cmdUpdate.Visible = false;
                         return;
                     }
-
                     var ctl = new AgencyController();
-                    var colAgencyUser = ctl.GetUserAgencies(UserId, ModuleId) != null ? ctl.GetUserAgencies(UserId, ModuleId).Where(a => !a.IsAdmin) : Enumerable.Empty<AgencyUserListItem>();
-                    if (!colAgencyUser.Any() && !IsSiteAdmin)
+                    IEnumerable<AgencyUserListItem> colAgencyUser = ctl.GetUserAgencies(UserId, ModuleId).Where(a => a.IsAdmin == false);
+                    if (colAgencyUser.Count() > 0 & !IsSiteAdmin)
                     {
-                        DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Invalid user access. Please contact the site administrator.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
+                        foreach (AgencyUserListItem item in colAgencyUser)
+                        {
+                            drpAgency.Items.Add(new ListItem(item.AgencyName, item.AgencyID.ToString()));
+                        }
+                        if (drpAgency.Items.Count > 1)
+                            dvAgency.Visible = true;
+
+                        BindCountyList(Int32.Parse(drpAgency.SelectedValue));
+                    }
+                    else
+                    {
+                        DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Invalid User Access.  Please contact the site administrator with the error.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
                         pnlRPO.Visible = false;
                         cmdUpdate.Visible = false;
                         return;
                     }
-
-                    foreach (var item in colAgencyUser)
-                    {
-                        drpAgency.Items.Add(new ListItem(item.AgencyName, item.AgencyID.ToString()));
-                    }
-                    dvAgency.Visible = drpAgency.Items.Count > 1;
-                    BindCountyList(Int32.Parse(drpAgency.SelectedValue));
                 }
             }
             catch (Exception exc)
             {
                 Exceptions.ProcessModuleLoadException(this, exc);
-                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Error loading page. Please try again or contact support.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
             }
         }
 
@@ -297,17 +263,16 @@ namespace tjc.Modules.eWarrants
         {
             try
             {
-                if (!string.IsNullOrEmpty(hdFileId.Value) && Int32.TryParse(hdFileId.Value, out int fileId))
+                if (!string.IsNullOrEmpty(hdFileId.Value))
                 {
                     var ctl = new FileController();
-                    ctl.DeleteFile(fileId);
+                    ctl.DeleteFile(System.Convert.ToInt32(hdFileId.Value));
                 }
                 Response.Redirect(_navigationManager.NavigateURL(), true);
             }
             catch (Exception exc)
             {
                 Exceptions.ProcessModuleLoadException(this, exc);
-                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Error cancelling operation. Please try again or contact support.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
             }
         }
 
@@ -315,80 +280,98 @@ namespace tjc.Modules.eWarrants
         {
             try
             {
-                if (!chkAffidavit.Checked || !chkRPO.Checked || !chkPetition.Checked)
-                {
-                    DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "The RPO, Affidavit, and Petition must be included. All checkboxes must be checked.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
-                    return;
-                }
-
                 var ctl = new WarrantController();
-                if (!Int32.TryParse(hdFileId.Value, out int fileId))
+                List<string> fileNames = new List<string>();
+                if (chkAffidavit.Checked & chkRPO.Checked & chkPetition.Checked)
                 {
-                    DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "The file ID could not be found. Please cancel this process and try again.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
-                    return;
-                }
-
-                Warrant existingWarrant = ctl.GetWarrantByFileId(fileId);
-                if (existingWarrant != null)
-                {
-                    DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Detected duplicate RPO file. Document not added. Please select the Cancel button to reset the form.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
-                    return;
-                }
-
-                var objWarrant = new Warrant
-                {
-                    ModuleID = ModuleId,
-                    AgencyID = Int32.Parse(drpAgency.SelectedValue),
-                    CreatedByUserID = UserId,
-                    CreatedDate = DateTime.Now,
-                    Title = txtTitle.Text,
-                    CountyName = drpCounty.SelectedItem.Text,
-                    Status = WarrantStatus.New,
-                    Defendant = txtRespondent.Text,
-                    NotificationSentDate = DateTime.Now,
-                    WarrantType = WarrantType.RPO,
-                    IsJuvenile = false,
-                    FileID = fileId
-                };
-
-                if (Int32.TryParse(hdJudgeId.Value, out int judgeId))
-                    objWarrant.JudgeUserID = judgeId;
-
-                ctl.CreateWarrant(objWarrant);
-                var fileNames = new List<string>();
-
-                if (!string.IsNullOrEmpty(hdAttachmentIds.Value))
-                {
-                    string[] fileList = hdAttachmentIds.Value.Split(new[] { ',' }).Where(s => !string.IsNullOrEmpty(s)).ToArray();
-                    var aCtl = new AttachmentController();
-                    foreach (var fileIdStr in fileList)
+                    Warrant objwarrant = new Warrant
                     {
-                        if (Int32.TryParse(fileIdStr, out int attachmentId))
+                        ModuleID = ModuleId,
+                        AgencyID = Int32.Parse(drpAgency.SelectedValue),
+                        CreatedByUserID = UserId,
+                        CreatedDate = DateTime.Now,
+                        Title = txtTitle.Text,
+                        CountyName = drpCounty.SelectedItem.Text,
+                        Status = WarrantStatus.New,
+                        Defendant = txtRespondent.Text,
+                        NotificationSentDate = DateTime.Now,
+                        WarrantType = WarrantType.RPO,
+                        IsJuvenile = false
+                    };
+                    if (Int32.TryParse(hdFileId.Value, out int fileId))
+                    {
+                        Warrant existingWarrant = ctl.GetWarrantByFileId(fileId);
+                        if (existingWarrant != null)
                         {
-                            var xref = new AttachmentWarrantXref { FileID = attachmentId, WarrantID = objWarrant.WarrantID };
+                            DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Detected duplicate RPO file, Document not added. This usually happens when the submit button is double clicked or the submitted page is refreshed.<br /><br /><strong>Please select the Cancel Button to Reset the Form</strong>", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
+                            return;
+                        }
+                        objwarrant.FileID = fileId;
+                    }
+                    else
+                    {
+                        DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "The file ID could not be found.  Please cancel this process and try again.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
+                        return;
+                    }
+                    string attachmentPath = @"C:\Websites\eWarrantAttachments\";
+                    if (Settings.Contains("RPODirectory"))
+                    {
+                        attachmentPath = Settings["RPODirectory"].ToString();
+                        if (!attachmentPath.EndsWith(@"\"))
+                            attachmentPath = attachmentPath + @"\";
+                    }
+                    if (Int32.TryParse(hdJudgeId.Value, out int judgeId))
+                        objwarrant.JudgeUserID = judgeId;
+                    ctl.CreateWarrant(objwarrant);
+
+                    if (!string.IsNullOrEmpty(hdAttachmentIds.Value))
+                    {
+                        string[] fileList = hdAttachmentIds.Value.Split(',');
+                        var aCtl = new AttachmentController();
+                        foreach (var fileid in fileList)
+                        {
+                            AttachmentWarrantXref xref = new AttachmentWarrantXref { FileID = Int32.Parse(fileid), WarrantID = objwarrant.WarrantID };
                             aCtl.CreateAttachmentWarrantXref(xref);
                         }
+                        fileNames = aCtl.GetAttachmentsByWarrant(objwarrant.WarrantID).Select(a => a.FileName).ToList();
                     }
-                    fileNames = aCtl.GetAttachmentsByWarrant(objWarrant.WarrantID).Select(a => a.FileName).ToList();
+                    try
+                    {
+                        var aCtl = new AgencyController();
+                        Agency objAgency = aCtl.GetAgency(Int32.Parse(drpAgency.SelectedValue), ModuleId);
+                        SendEmailResponse(objAgency.AgencyName, objwarrant.WarrantID.ToString());
+                        SendRPOHearingNotifications(drpCounty.SelectedItem.Text.ToLower(), objwarrant, fileNames);
+                    }
+                    catch (Exception ex)
+                    {
+                        DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Your submission was successfully added, however, there was an error sending the  email.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
+                        Exceptions.ProcessModuleLoadException(this, ex, false);
+                    }
                 }
-
-                var aCtlAgency = new AgencyController();
-                Agency objAgency = aCtlAgency.GetAgency(Int32.Parse(drpAgency.SelectedValue), ModuleId);
-                SendEmailResponse(objAgency.AgencyName, objWarrant.WarrantID.ToString());
-                SendRPOHearingNotifications(drpCounty.SelectedItem.Text.ToLower(), objWarrant, fileNames);
-
+                else
+                {
+                    DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "The RPO, Affidavit, and Petition must be included.  All checkboxes must be checked.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
+                    return;
+                }
+                // refresh cache
                 DotNetNuke.Entities.Modules.ModuleController.SynchronizeModule(ModuleId);
-
-                string redirectUrl = isOutofOffice
-                    ? _navigationManager.NavigateURL("", "msg=" + Judgeinfo.DisplayName + " is out of the office. " + (string.IsNullOrEmpty(coverJudgeName) ? "You will receive an email with further information from the Judge" : "Your submission has been forwarded to " + coverJudgeName))
-                    : _navigationManager.NavigateURL();
-
-                Response.Redirect(redirectUrl, true);
+                // Redirect back to the portal home page
+                if (isOutofOffice)
+                {
+                    string judgeName = Judgeinfo.DisplayName;
+                    string notificationMessage = judgeName + " is out of the office. ";
+                    if (coverJudgeName != "")
+                        notificationMessage += " Your submission has been forwarded to " + coverJudgeName;
+                    else
+                        notificationMessage += " You will receive an email with further information from the Judge";
+                    Response.Redirect(_navigationManager.NavigateURL("", "msg=" + notificationMessage), true);
+                }
+                else
+                    Response.Redirect(_navigationManager.NavigateURL(), true);
             }
             catch (Exception exc)
             {
                 Exceptions.ProcessModuleLoadException(this, exc);
-                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Error submitting RPO. Please try again or contact support.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
             }
         }
 
@@ -414,50 +397,39 @@ namespace tjc.Modules.eWarrants
 
         protected override void Render(System.Web.UI.HtmlTextWriter writer)
         {
-            try
-            {
-                var ctl = new JudgeController();
-                var judges = ctl.GetJudges(ModuleId) != null ? ctl.GetJudges(ModuleId) : Enumerable.Empty<Judge>();
-                foreach (var j in judges)
-                    Page.ClientScript.RegisterForEventValidation(drpJudge.UniqueID, j.JudgeID.ToString());
+            var ctl = new JudgeController();
+            IEnumerable<Judge> judges = ctl.GetJudges(ModuleId);
+            foreach (var j in judges)
+                Page.ClientScript.RegisterForEventValidation(drpJudge.UniqueID, j.JudgeID.ToString());
 
-                Page.ClientScript.RegisterForEventValidation(drpJudge.UniqueID, "");
-                base.Render(writer);
-            }
-            catch (Exception exc)
-            {
-                Exceptions.ProcessModuleLoadException(this, exc);
-            }
+            Page.ClientScript.RegisterForEventValidation(drpJudge.UniqueID, "");
+            base.Render(writer);
         }
 
         protected void valEmergency_ServerValidate(object source, ServerValidateEventArgs args)
         {
             args.IsValid = false;
-            if (Int32.TryParse(hdJudgeId.Value, out int judgeId))
-            {
-                var ctl = new JudgeController();
-                var judge = ctl.GetJudge(judgeId, ModuleId);
-                if (judge != null)
-                {
-                    bool notifyJudge = DateTime.Now.TimeOfDay <= judge.DayEnd.TimeOfDay && DateTime.Now.TimeOfDay >= judge.DayStart.TimeOfDay;
-                    args.IsValid = notifyJudge;
-                }
-            }
+            Int32.TryParse(hdJudgeId.Value, out int judgeId);
+            var ctl = new JudgeController();
+            var judge = ctl.GetJudge(judgeId, ModuleId);
+            bool NotifyJudge = true;
+            if (DateTime.Now.TimeOfDay > judge.DayEnd.TimeOfDay | DateTime.Now.TimeOfDay < judge.DayStart.TimeOfDay)
+                NotifyJudge = false;
+            if (NotifyJudge)
+                args.IsValid = true;
         }
 
         protected void drpAgency_SelectedIndexChanged(object sender, EventArgs e)
         {
-            try
-            {
-                drpCounty.Items.Clear();
-                BindCountyList(Int32.Parse(drpAgency.SelectedValue));
-                drpJudge.SelectedIndex = -1;
-            }
-            catch (Exception exc)
-            {
-                Exceptions.ProcessModuleLoadException(this, exc);
-                DotNetNuke.UI.Skins.Skin.AddModuleMessage(this, "Error updating agency selection. Please try again or contact support.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.RedError);
-            }
+            drpCounty.Items.Clear();
+            BindCountyList(Int32.Parse(drpAgency.SelectedValue));
+            drpJudge.SelectedIndex = -1;
+        }
+
+        protected void SendToAlternateContact(string replyEmail, string contactPoint, string subject, string body)
+        {
+            if (!string.IsNullOrEmpty(contactPoint) && contactPoint.Contains("@"))
+                Mail.SendEmail(replyEmail, contactPoint, subject, body);
         }
     }
 }

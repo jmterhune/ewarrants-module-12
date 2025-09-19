@@ -23,7 +23,6 @@ namespace tjc.Modules.eWarrants.Handlers
                 if (objUser == null || objUser.UserID <= 0)
                     throw new UnauthorizedAccessException("User not authenticated. You must be Law Enforcement Personnel.");
 
-                ValidateAntiForgeryToken(context);
 
                 if (context.Request.Files.Count > 0)
                 {

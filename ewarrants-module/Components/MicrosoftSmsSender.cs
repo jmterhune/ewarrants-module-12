@@ -1,4 +1,6 @@
 ﻿using Azure.Communication.Sms;
+using DotNetNuke.Services.Exceptions;
+using PhoneNumbers;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -14,10 +16,19 @@ namespace tjc.Modules.eWarrants.Components
         /// Initializes a new instance of the MicrosoftSmsSender class.
         /// </summary>
         /// <param name="connectionString">The Azure Communication Services connection string.</param>
-       public MicrosoftSmsSender()
+        public MicrosoftSmsSender()
         {
-            var connectionString = ConfigurationManager.ConnectionStrings["AzureSmsConnection"].ConnectionString; 
-            _smsClient = new SmsClient(connectionString);
+            try
+            {
+                var connectionString = ConfigurationManager.ConnectionStrings["AzureSmsConnection"].ConnectionString;
+                _smsClient = new SmsClient(connectionString);
+
+            }
+            catch (Exception ex)
+            {
+
+                Exceptions.LogException(ex);
+            }
         }
 
         /// <summary>
@@ -29,11 +40,20 @@ namespace tjc.Modules.eWarrants.Components
         /// <returns>The SMS send result.</returns>
         public SmsSendResult SendSms(string toPhoneNumber, string message)
         {
-            return _smsClient.Send(
-                from: "18666227990",
-                to: toPhoneNumber,
-                message: message
-            );
+            try
+            {
+                return _smsClient.Send(
+                                from: "18666227990",
+                                to: toPhoneNumber,
+                                message: message
+                            );
+            }
+            catch (Exception ex)
+            {
+                Exceptions.LogException(ex);
+                return null;
+
+            }
         }
 
         /// <summary>
@@ -45,21 +65,31 @@ namespace tjc.Modules.eWarrants.Components
         /// <param name="enableDeliveryReport">Whether to enable delivery reports (default: false).</param>
         /// <param name="tag">Optional custom tag for the message.</param>
         /// <returns>A list of SMS send results.</returns>
-        public IReadOnlyList<SmsSendResult> SendSmsToMultiple( List<string> toPhoneNumbers, string message, bool enableDeliveryReport = false, string tag = null)
+        public IReadOnlyList<SmsSendResult> SendSmsToMultiple(List<string> toPhoneNumbers, string message, bool enableDeliveryReport = false, string tag = null)
         {
-            var options = new SmsSendOptions(enableDeliveryReport)
+
+            try
             {
-                Tag = tag
-            };
+                var options = new SmsSendOptions(enableDeliveryReport)
+                {
+                    Tag = tag
+                };
 
-            var response = _smsClient.Send(
-                from: "18666227990",
-                to: toPhoneNumbers,
-                message: message,
-                options: options
-            );
+                var response = _smsClient.Send(
+                    from: "18666227990",
+                    to: toPhoneNumbers,
+                    message: message,
+                    options: options
+                );
 
-            return response.Value;
+                return response.Value;
+            }
+            catch (Exception ex)
+            {
+                Exceptions.LogException(ex);
+                return null;
+
+            }
         }
     }
 }
