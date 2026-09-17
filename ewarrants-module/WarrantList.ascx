@@ -26,7 +26,9 @@
                 <div class="form-group">
                     <button id="cmdRefresh" class="btn btn-success"><em class="fas fa-sync-alt"></em> Refresh List</button>
                     <asp:CheckBox ID="chkShowAssigned" CssClass="checker" AutoPostBack="true" OnCheckedChanged="chkShowAssigned_CheckedChanged" runat="server" Visible="false" Checked="true" Text="Show Only My warrants" />
-                    <asp:CheckBox ID="chkTouchViewer" CssClass="ms-2 checker" AutoPostBack="true" OnCheckedChanged="chkTouchViewer_CheckedChanged" runat="server" Visible="false" Text="Alternate Viewer" />
+                </div>
+                <div class="form-group" style="display: block; clear: both; width: 100%; margin-top: 5px;">
+                    <asp:CheckBox ID="chkTouchViewer" CssClass="checker" AutoPostBack="true" OnCheckedChanged="chkTouchViewer_CheckedChanged" runat="server" Visible="false" Text="Use New Document Viewer" />
                 </div>
             </div>
             <asp:Repeater runat="server" ID="rptWarrants" OnItemCreated="rptWarrants_ItemCreated" OnItemCommand="rptWarrants_ItemCommand" OnItemDataBound="rptWarrants_ItemDataBound">
@@ -74,7 +76,7 @@
                         </td>
                         <td><%#DataBinder.Eval(Container.DataItem, "Defendant")%></td>
                         <td>
-                            <span class="toolTip" data-toggle="tooltip" data-placement="top" data-html="true" title='<%#GetUserInfo(Int32.Parse(Eval("CreatedByUserId").ToString()))%>'><%#DataBinder.Eval(Container.DataItem, "CreatedByName")%></span>
+                            <span class="toolTip" data-toggle="tooltip" data-placement="top" data-bs-html="true" title='<%#GetUserInfo(Int32.Parse(Eval("CreatedByUserId").ToString()))%>'><%#DataBinder.Eval(Container.DataItem, "CreatedByName")%></span>
                         </td>
                         <td><%#DataBinder.Eval(Container.DataItem, "AgencyName")%></td>
                         <td><%#DataBinder.Eval(Container.DataItem, "JudgeName")%></td>
@@ -106,7 +108,7 @@
         <p class="alert alert-info" style="margin-top: 20px"><em class="fa fa-info-circle"></em> <strong>Please Note:</strong> Warrants will be automatically deleted {0} hours after you or another agency member view a signed or rejected warrant.</p>
     </asp:Literal>
 
-    <div class="dnnFormMessage dnnFormInfo" id="juvpickupForm" style="clear: both; background-color: whitesmoke; border-color: #ccc;">
+    <div id="juvpickupForm" style="clear: both; background-color: whitesmoke; border-color: #ccc;">
         <strong>Form Downloads</strong>
         <ul style="margin-bottom: 0; margin-top: 10px;">
             <li id="ddl"><a href="/Portals/0/Forms/DeSoto-Juvenile-Pick-Up-Order.docx">DeSoto County Juvenile Pickup Order</a></li>
@@ -117,13 +119,13 @@
 
 </div>
 
-<dnn:DnnCssInclude runat="server" FilePath="~/Resources/Shared/components/TimePicker/Themes/jquery-ui.min.css" />
-<dnn:DnnCssInclude runat="server" FilePath="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.css" />
-<dnn:DnnJsInclude runat="server" FilePath="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js" />
-<dnn:DnnJsInclude runat="server" FilePath="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js" />
-<dnn:DnnJsInclude runat="server" FilePath="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js" />
-<dnn:DnnCssInclude runat="server" FilePath="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css" />
-<dnn:DnnJsInclude runat="server" FilePath="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" />
+<dnn:DnnCssInclude runat="server" FilePath="/Resources/Shared/components/TimePicker/Themes/jquery-ui.min.css" />
+<dnn:DnnCssInclude runat="server" FilePath="/Resources/Shared/components/TimePicker/jquery.timepicker.css" />
+<dnn:DnnJsInclude runat="server" FilePath="/Resources/Shared/components/TimePicker/jquery.timepicker.js" />
+<dnn:DnnJsInclude runat="server" FilePath="/Resources/Libraries/DataTables/jquery.dataTables.min.js" />
+<dnn:DnnJsInclude runat="server" FilePath="/Resources/Libraries/DataTables/dataTables.bootstrap5.min.js" />
+<dnn:DnnCssInclude runat="server" FilePath="/Resources/Libraries/DataTables/dataTables.bootstrap5.min.css" />
+<dnn:DnnJsInclude runat="server" FilePath="/Resources/Libraries/DataTables/bootstrap.bundle.min.js" />
 
 <script type="text/javascript">
     var p_counties = "<%=p_counties%>";

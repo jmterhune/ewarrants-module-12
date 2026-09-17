@@ -253,7 +253,7 @@ namespace tjc.Modules.eWarrants
                             Components.File objwarrantFile = fCtl.GetFile(objwarrant.FileID);
                             if (objwarrantFile != null)
                             {
-                                string filename = string.Format("{0}.{1}", Session.SessionID.ToString(), objwarrantFile.Extension);
+                                string filename = string.Format("{0}{1}.{2}", Session.SessionID.ToString(), DateTime.Now.ToString("mmddyyyyhhss"), objwarrantFile.Extension);
                                 string directoryPath = Path.Combine(ImageCache, "TempSession");
                                 DirectoryInfo dir = new DirectoryInfo(Server.MapPath(directoryPath));
                                 if (!dir.Exists)

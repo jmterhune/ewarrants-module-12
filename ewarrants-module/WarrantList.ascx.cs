@@ -215,6 +215,9 @@ namespace tjc.Modules.eWarrants
                         var jCtl = new JudgeController();
                         var judge = jCtl.GetJudge(UserId);
                         chkShowAssigned.Visible = judge != null;
+                        chkTouchViewer.Visible = judge != null;
+                        if (judge != null)
+                            chkTouchViewer.Checked = judge.TouchEnabledViewer;
                     }
 
                     BindData();
@@ -300,9 +303,9 @@ namespace tjc.Modules.eWarrants
                         break;
 
                     case "sign":
-                        string viewer = "WarrantView";
                         var jCtl = new JudgeController();
                         Judge judge = jCtl.GetJudge(UserId);
+                        string viewer = judge != null && judge.TouchEnabledViewer ? "DocViewer" : "WarrantView";
                         string encryptedValue = _encryptor.QueryStringEncode(warrantId.ToString(), UserInfo.Username);
                         string url = TemplateSourceDirectory + "/" + viewer + ".aspx?ModuleId=" + ModuleId + "&enc=" + encryptedValue;
                         Warrant signWarrant = ctl.GetWarrant(warrantId);
@@ -443,7 +446,10 @@ namespace tjc.Modules.eWarrants
                 var ctl = new JudgeController();
                 var judge = ctl.GetJudge(UserId);
                 if (judge != null)
+                {
+                    judge.TouchEnabledViewer = chkTouchViewer.Checked;
                     ctl.UpdateJudge(judge);
+                }
             }
             catch (Exception exc)
             {
