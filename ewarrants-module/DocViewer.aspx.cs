@@ -288,19 +288,21 @@ namespace tjc.Modules.eWarrants
             Components.File objWarrantImage = ctl.GetFile(id);
             byte[] imageData = _encryptor.DecryptStream(objWarrantImage.Bytes);
             string fullFilename = string.Format("{0}.{1}", file, objWarrantImage.Extension);
-            string relativePath = string.Format("{0}/{1}/{2}", ImageCache, "TempSession", fullFilename);
+            string relativePath = string.Format("{0}{1}/{2}", ImageCache, "TempSession", fullFilename);
             string physicalPath = Server.MapPath(Path.Combine(ImageCache, "TempSession", fullFilename));
             System.IO.File.WriteAllBytes(physicalPath, imageData);
-            System.Drawing.Image img = System.Drawing.Image.FromFile(physicalPath);
-            if (sigType == "s")
+            using (System.Drawing.Image img = System.Drawing.Image.FromFile(physicalPath))
             {
-                hdSignatureHeight.Value = img.Height.ToString();
-                hdSignatureWidth.Value = img.Width.ToString();
-            }
-            else
-            {
-                hdInitialHeight.Value = img.Height.ToString();
-                hdInitialWidth.Value = img.Width.ToString();
+                if (sigType == "s")
+                {
+                    hdSignatureHeight.Value = img.Height.ToString();
+                    hdSignatureWidth.Value = img.Width.ToString();
+                }
+                else
+                {
+                    hdInitialHeight.Value = img.Height.ToString();
+                    hdInitialWidth.Value = img.Width.ToString();
+                }
             }
             return relativePath;
         }
