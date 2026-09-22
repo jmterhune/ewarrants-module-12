@@ -91,23 +91,12 @@ $(function () {
     });
     $("#signatureAnnotation").on("click", function (e) {
         e.preventDefault();
-        var signatureAnnotationConfig = {
-            'type': 'image',
-            'name': 'Signature',
-            'src': _signiturePath,
-        };
-        _thumbs.annotations.drawAnnotation(signatureAnnotationConfig);
-
+        InsertImageAnnotation('Signature', _signiturePath, $("#hdSignatureWidth").val(), $("#hdSignatureHeight").val(), 180);
         return false;
     });
     $("#initialAnnotation").on("click", function (e) {
         e.preventDefault();
-        var initialAnnotationConfig = {
-            'type': 'image',
-            'name': 'Initial',
-            'src': _initialPath,
-        };
-        _thumbs.annotations.drawAnnotation(initialAnnotationConfig);
+        InsertImageAnnotation('Initial', _initialPath, $("#hdInitialWidth").val(), $("#hdInitialHeight").val(), 80);
         return false;
     });
     $("#insertDateText").on("click", function (e) {
@@ -755,4 +744,50 @@ function InsertDocumentId(pageIndex, pageInfo) {
         }
     };
     _viewer.annotations.createOnPage(idAnno, pageIndex);
+}
+// Places an image annotation immediately at a default size/position (centered on the page),
+// preserving the source image's aspect ratio. The user can then drag it or its resize handles
+// to move/resize it, same as any other annotation.
+//
+// _viewer.annotations.createOnPage() does not paint the image for annotations added this way
+// (a limitation of this build of the viewer control), so instead we arm the normal interactive
+// "draw an image annotation" tool and immediately complete it ourselves by simulating the
+// click-and-drag the tool expects, at a computed default rectangle. This uses the same code
+// path as a user manually drawing the annotation, which does render correctly.
+function InsertImageAnnotation(name, src, naturalWidth, naturalHeight, targetWidth) {
+    var svg = $('#_containerViewer svg')[0];
+    if (!svg) return false;
+    var svgRect = svg.getBoundingClientRect();
+    var docInfo = _viewer.getDocumentInfo();
+    var pageIndex = _thumbs.getSelectedPageIndex();
+    var pageInfo = (docInfo.pages && docInfo.pages[pageIndex]) ? docInfo.pages[pageIndex] : docInfo;
+    var pageSize = pageInfo.size || { width: 0, height: 0 };
+    var scaleX = pageSize.width ? (svgRect.width / pageSize.width) : 1;
+    var scaleY = pageSize.height ? (svgRect.height / pageSize.height) : 1;
+
+    var width = targetWidth;
+    var height = (naturalWidth > 0) ? (targetWidth * (naturalHeight / naturalWidth)) : targetWidth;
+    var pageX = Math.max(0, (pageSize.width - width) / 2);
+    var pageY = Math.max(0, (pageSize.height - height) / 2);
+
+    var startX = svgRect.left + pageX * scaleX;
+    var startY = svgRect.top + pageY * scaleY;
+    var endX = svgRect.left + (pageX + width) * scaleX;
+    var endY = svgRect.top + (pageY + height) * scaleY;
+
+    _thumbs.annotations.drawAnnotation({ 'type': 'image', 'name': name, 'src': src });
+
+    function fireMouse(type, x, y) {
+        var target = document.elementFromPoint(x, y) || svg;
+        var ev = new MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, buttons: type === 'mouseup' ? 0 : 1, view: window });
+        target.dispatchEvent(ev);
+    }
+
+    var steps = 10;
+    fireMouse('mousedown', startX, startY);
+    for (var i = 1; i <= steps; i++) {
+        fireMouse('mousemove', startX + (endX - startX) * i / steps, startY + (endY - startY) * i / steps);
+    }
+    fireMouse('mouseup', endX, endY);
+    return false;
 }

@@ -179,6 +179,12 @@ namespace tjc.Modules.eWarrants
                 Response.Cache.SetValidUntilExpires(true);
                 Response.Cache.AppendCacheExtension("no-cache");
                 Response.Expires = 0;
+                if (_objUser == null || string.IsNullOrEmpty(_objUser.Username))
+                {
+                    phMessage.Controls.Add(DotNetNuke.UI.Skins.Skin.GetModuleMessageControl("Notice", "Your session has expired. Please <a href='/'>log in</a> and try again.", DotNetNuke.UI.Skins.Controls.ModuleMessage.ModuleMessageType.BlueInfo));
+                    ViewContainer.Visible = false;
+                    return;
+                }
                 string encryptedValue = "";
                 if (Request.QueryString["enc"] != null)
                 {
