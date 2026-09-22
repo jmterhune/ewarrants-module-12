@@ -745,49 +745,54 @@ function InsertDocumentId(pageIndex, pageInfo) {
     };
     _viewer.annotations.createOnPage(idAnno, pageIndex);
 }
-// Places an image annotation immediately at a default size/position (centered on the page),
-// preserving the source image's aspect ratio. The user can then drag it or its resize handles
-// to move/resize it, same as any other annotation.
-//
-// _viewer.annotations.createOnPage() does not paint the image for annotations added this way
-// (a limitation of this build of the viewer control), so instead we arm the normal interactive
-// "draw an image annotation" tool and immediately complete it ourselves by simulating the
-// click-and-drag the tool expects, at a computed default rectangle. This uses the same code
-// path as a user manually drawing the annotation, which does render correctly.
+// Arms the normal interactive "draw an image annotation" tool: the user then either
+// - clicks once on the page, placing the image at the click point at a default size
+//   (preserving its natural aspect ratio), or
+// - clicks and drags, drawing out the image at whatever size/position they choose,
+//   exactly as before.
+// The viewer's own click-only placement uses a fixed square default size regardless of the
+// image's aspect ratio, so a plain click would otherwise stretch/squash the image; we detect
+// that case (mouseup very close to mousedown) and resize the resulting annotation to the
+// correct aspect ratio in place, re-centered on the click point.
 function InsertImageAnnotation(name, src, naturalWidth, naturalHeight, targetWidth) {
     var svg = $('#_containerViewer svg')[0];
     if (!svg) return false;
-    var svgRect = svg.getBoundingClientRect();
-    var docInfo = _viewer.getDocumentInfo();
-    var pageIndex = _thumbs.getSelectedPageIndex();
-    var pageInfo = (docInfo.pages && docInfo.pages[pageIndex]) ? docInfo.pages[pageIndex] : docInfo;
-    var pageSize = pageInfo.size || { width: 0, height: 0 };
-    var scaleX = pageSize.width ? (svgRect.width / pageSize.width) : 1;
-    var scaleY = pageSize.height ? (svgRect.height / pageSize.height) : 1;
 
-    var width = targetWidth;
-    var height = (naturalWidth > 0) ? (targetWidth * (naturalHeight / naturalWidth)) : targetWidth;
-    var pageX = Math.max(0, (pageSize.width - width) / 2);
-    var pageY = Math.max(0, (pageSize.height - height) / 2);
-
-    var startX = svgRect.left + pageX * scaleX;
-    var startY = svgRect.top + pageY * scaleY;
-    var endX = svgRect.left + (pageX + width) * scaleX;
-    var endY = svgRect.top + (pageY + height) * scaleY;
+    var downPoint = null;
+    function onDown(e) {
+        downPoint = { x: e.clientX, y: e.clientY };
+    }
+    function onUp(e) {
+        svg.removeEventListener('mousedown', onDown, true);
+        svg.removeEventListener('mouseup', onUp, true);
+        if (!downPoint) return;
+        var dx = e.clientX - downPoint.x;
+        var dy = e.clientY - downPoint.y;
+        var wasClick = Math.sqrt(dx * dx + dy * dy) < 5;
+        if (!wasClick) return;
+        // Give the viewer a moment to finish creating the default annotation before we resize it.
+        setTimeout(function () {
+            var pageIndex = _thumbs.getSelectedPageIndex();
+            var annos = _viewer.getAnnotationsFromPage(pageIndex);
+            var anno = null;
+            for (var i = annos.length - 1; i >= 0; i--) {
+                if (annos[i].name === name) { anno = annos[i]; break; }
+            }
+            if (!anno) return;
+            var width = targetWidth;
+            var height = (naturalWidth > 0) ? (targetWidth * (naturalHeight / naturalWidth)) : targetWidth;
+            var cx = anno.x + anno.width / 2;
+            var cy = anno.y + anno.height / 2;
+            anno.x = cx - width / 2;
+            anno.y = cy - height / 2;
+            anno.width = width;
+            anno.height = height;
+            anno.update();
+        }, 50);
+    }
+    svg.addEventListener('mousedown', onDown, true);
+    svg.addEventListener('mouseup', onUp, true);
 
     _thumbs.annotations.drawAnnotation({ 'type': 'image', 'name': name, 'src': src });
-
-    function fireMouse(type, x, y) {
-        var target = document.elementFromPoint(x, y) || svg;
-        var ev = new MouseEvent(type, { bubbles: true, cancelable: true, clientX: x, clientY: y, button: 0, buttons: type === 'mouseup' ? 0 : 1, view: window });
-        target.dispatchEvent(ev);
-    }
-
-    var steps = 10;
-    fireMouse('mousedown', startX, startY);
-    for (var i = 1; i <= steps; i++) {
-        fireMouse('mousemove', startX + (endX - startX) * i / steps, startY + (endY - startY) * i / steps);
-    }
-    fireMouse('mouseup', endX, endY);
     return false;
 }
