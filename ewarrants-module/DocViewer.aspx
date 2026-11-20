@@ -14,6 +14,7 @@
     <form id="frmWarrant" runat="server">
         <iframe style="display: none" src="/Keepalive.aspx"></iframe>
         <asp:PlaceHolder ID="phMessage" runat="server" />
+        <%= System.Web.Helpers.AntiForgery.GetHtml() %>
         <asp:HiddenField ID="hdFilePath" ClientIDMode="Static" runat="server" />
         <asp:HiddenField ID="hdSignature" ClientIDMode="Static" runat="server" />
         <asp:HiddenField ID="hdInitial" ClientIDMode="Static" runat="server" />

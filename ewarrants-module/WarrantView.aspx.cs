@@ -229,6 +229,11 @@ namespace tjc.Modules.eWarrants
             FileInfo[] cacheFiles = dir.GetFiles(string.Format("{0}*.*", Session.SessionID));
             foreach (FileInfo file in cacheFiles)
             {
+                // The rendered date graphic is cached with the session's annotation data; clear that so the
+                // date is regenerated (e.g. after midnight). Keep the thumbnail viewer's source image cache
+                // (*_si_*), which holds no date and is still read by other requests from the same session.
+                if (file.Name.IndexOf("_si_", StringComparison.OrdinalIgnoreCase) >= 0)
+                    continue;
                 try
                 {
                     file.Delete();
@@ -353,6 +358,7 @@ namespace tjc.Modules.eWarrants
                         {
                             if (objwarrant.WarrantType == WarrantType.RPO)
                             {
+
                                 var aCtl = new AttachmentController();
                                 _isRPO = 1;
                                 attachments.Visible = true;
@@ -364,6 +370,7 @@ namespace tjc.Modules.eWarrants
                             }
                             else
                             {
+                                ltWilliamsMessage.Text = "<br />";
                                 string affidavitInfo = string.Format("<h5>Affidavit Information</h5><ul class='affidavit'><li><strong>Name:</strong> {0}</li><li><strong>Agency:</strong> {1}</li><li><strong>ID:</strong> {2}</li></ul>", objwarrant.AdministeredOathName, objwarrant.AdministeredOathAgency, objwarrant.AdministeredOathId);
                                 ltAffidavitInfo.Text = affidavitInfo;
                             }

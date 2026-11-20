@@ -123,13 +123,18 @@
         </li>
     </ul>
 </div>
-<script type="text/javascript">
-    var submit = 0;
+<script type="text/javascript">  var submit = 0;
+    var moduleId = <%=ModuleId%>;
     var extensionHash = {
         'pdf': 1,
         'tif': 1,
         'tiff': 1,
     };
+    var service = {
+        path: "eWarrants",
+        framework: $.ServicesFramework(moduleId),
+    };
+    var baseUrl = service.framework.getServiceRoot(service.path);
     function check_extension(filename) {
         var ext = filename.split('.').pop().toLowerCase();
         var submitEl = document.getElementById('<%=cmdUpload.ClientID%>');
@@ -161,39 +166,44 @@
     function DeleteAttachment(fileId) {
         var data = new FormData();
         data.append("fileId", fileId);
-        var options = {};
-        options.url = "<%=attachmentHandler%>";
-        options.type = "POST";
-        options.data = data;
-        options.contentType = false;
-        options.processData = false;
-        options.success = function (result) {
-            var listItem = $("li[data-fileid='" + fileId + "']");
-            listItem.remove();
-            var fileList = "";
-            $('li[data-fileid]').each(function () {
-                var id = $(this).data("fileid");
-                if (fileList == "") {
-                    fileList = id;
-                } else {
-                    fileList = fileList + "," + id;
-                }
-            });
-            $("#<%=hdAttachmentIds.ClientID%>").val(fileList);
-        };
-        options.error = function (err) { alert(err.statusText); };
-        $.ajax(options);
 
+        $.ajax({
+            url: "<%=attachmentHandler%>",
+            type: "POST",
+            data: data,
+            contentType: false,
+            processData: false,
+            headers: {
+                'RequestVerificationToken': getAntiForgeryToken()
+            },
+            success: function (result) {
+                var listItem = $("li[data-fileid='" + fileId + "']");
+                listItem.remove();
+                var fileList = "";
+                $('li[data-fileid]').each(function () {
+                    var id = $(this).data("fileid");
+                    if (fileList == "") {
+                        fileList = id;
+                    } else {
+                        fileList = fileList + "," + id;
+                    }
+                });
+                $("#<%=hdAttachmentIds.ClientID%>").val(fileList);
+            },
+            error: function (err) {
+                alert("Error deleting attachment: " + err.statusText);
+            }
+        });
         return false;
     }
     $(document).ready(function () {
         if ($("#<%=hdFileId.ClientID%>").val() != "") {
             $(".info").html("<span class='NormalRed'>RPO File Captured.</span>");
         }
-        $("#uplWarrant").on("click", function (e) {
+        $("#<%=uplWarrant.ClientID%>").on("click", function (e) {
             $("#upload-overlay").show();
         });
-        $("#uplAttachments").on("click", function (e) {
+        $("#<%=uplAttachments.ClientID%>").on("click", function (e) {
             $("#attach-overlay").show();
         });
 
@@ -202,91 +212,91 @@
             var fileUpload = $("#<%=uplWarrant.ClientID%>").get(0);
             var files = fileUpload.files;
             if (files.length == 0) {
-                $(".info").html("<span class='NormalRed'>Please Choose a File!</span>");
+                $(".info").html("<span class='dnnFormMessage dnnFormError'>Please Choose a File!</span>");
                 return false;
             }
             var data = new FormData();
             data.append(files[0].name, files[0]);
-            var options = {};
-            options.url = "<%=uploadHandler%>";
-            options.type = "POST";
-            options.data = data;
-            options.contentType = false;
-            options.processData = false;
-            options.success = function (fileId) {
-                $("#<%=hdFileId.ClientID%>").val(fileId);
-                WriteMessage(fileId);
-            };
-            options.error = function (err) {
-                alert(err.statusText);
-            };
-            $.ajax(options);
+            $.ajax({
+                url: "<%=uploadHandler%>",
+                type: "POST",
+                data: data,
+                contentType: false,
+                processData: false,
+                headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+                beforeSend: function () {
+                    $("#upload-overlay").show();
+                },
+                success: function (fileId) {
+                    $("#upload-overlay").hide();
+                    $("#<%=hdFileId.ClientID%>").val(fileId);
+                    WriteMessage(fileId);
+                },
+                error: function (xhr, status, error) {
+                    $("#upload-overlay").hide();
+                    $(".info").html("<span class='dnnFormMessage dnnFormError'>Error uploading file: " + error + "</span>");
+                }
+            });
             evt.preventDefault();
-            $("#upload-overlay").hide();
         });
 
         //send attachment async
         $("#<%=cmdAddAttachment.ClientID%>").click(function (evt) {
             $("#attach-overlay").show();
-
             var upload = $("#<%=uplAttachments.ClientID%>");
-
             if (upload.is(':enabled')) {
                 var selectedAttachmentType = $("#<%=drpAttachmentType.ClientID%>").val();
                 var fileUpload = $("#<%=uplAttachments.ClientID%>").get(0);
                 var files = fileUpload.files;
                 if (files.length == 0) {
-                    $(".attachmentInfo").html("<span class='NormalRed'>Please Choose a File!</span>");
+                    $(".attachmentInfo").html("<span class='dnnFormMessage dnnFormError'>Please Choose a File!</span>");
+                    $("#attach-overlay").hide();
                     return false;
                 }
-                var filename = files[0].name;
                 if (selectedAttachmentType === "") {
-                    $(".attachmentInfo").html("<span class='NormalRed'>Please Choose an Attachment Type!</span>");
+                    $(".attachmentInfo").html("<span class='dnnFormMessage dnnFormError'>Please Choose an Attachment Type!</span>");
+                    $("#attach-overlay").hide();
                     return false;
                 }
+
+                var filename = files[0].name;
                 var data = new FormData();
                 data.append(filename, files[0]);
                 data.append("attachmentType", selectedAttachmentType);
-                data.append("moduleId",<%=ModuleId%>);
-                data.append("tabId",<%=TabId%>);
-                var options = {};
-                options.url = "<%=attachmentHandler%>";
-                options.type = "POST";
-                options.data = data;
-                options.contentType = false;
-                options.processData = false;
-                options.success = function (fileId) {
-                    $("#attach-overlay").hide();
-                    var fileIdList = $("#<%=hdAttachmentIds.ClientID%>").val();
-                    if (fileIdList.length == 0) {
-                        $("#<%=hdAttachmentIds.ClientID%>").val(fileId);
-                    } else {
-                        $("#<%=hdAttachmentIds.ClientID%>").val(fileIdList + "," + fileId);
-                    }
-                    $("#attachmentList").append("<li data-fileType='" + selectedAttachmentType + "' data-fileId='" + fileId + "'><span class='fileType'>" + selectedAttachmentType + "</span>&nbsp;<a onclick=\"DeleteAttachment('" + fileId + "')\"><em class='fa fa-trash'></em></></li>");
-                    WriteAttachmentMessage(filename);
-                };
-                options.error = function (err) {
-                    alert(err.statusText);
-                    setTimeout(function () {
-                        $("#attach-overlay").hide();
-                        upload.parent().addClass("disabledWrapper");
-                        //upload.parent().text("Choose File");
-                        upload.attr("disabled", true);
-                        upload.attr("title", "Select Attachment Type First");
-                        $(".attachmentInfo").html('');
-                    }, 1000);
-
-                    $("#<%=drpAttachmentType.ClientID%>").val('');
-
-                };
-
-                $.ajax(options);
-
-                evt.preventDefault();
+                data.append("moduleId", moduleId);
+                data.append("tabId", <%=TabId%>);
+                $.ajax({
+                    url: "<%=attachmentHandler%>",
+            type: "POST",
+            data: data,
+            contentType: false,
+            processData: false,
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+            success: function (fileId) {
+                $("#attach-overlay").hide();
+                var fileIdList = $("#<%=hdAttachmentIds.ClientID%>").val();
+                        if (fileIdList.length == 0) {
+                            $("#<%=hdAttachmentIds.ClientID%>").val(fileId);
+                        } else {
+                            $("#<%=hdAttachmentIds.ClientID%>").val(fileIdList + "," + fileId);
+                }
+                $("#attachmentList").append("<li data-fileType='" + selectedAttachmentType + "' data-fileId='" + fileId + "'><span class='fileType'>" + selectedAttachmentType + "</span>&nbsp;<a onclick=\"DeleteAttachment('" + fileId + "')\"><em class='fa fa-trash'></em></a></li>");
+                WriteAttachmentMessage(filename);
+            },
+            error: function (xhr, status, error) {
+                $("#attach-overlay").hide();
+                upload.parent().addClass("disabledWrapper");
+                upload.attr("disabled", true);
+                upload.attr("title", "Select Attachment Type First");
+                $(".attachmentInfo").html("<span class='dnnFormMessage dnnFormError'>Error uploading attachment: " + error + "</span>");
+                $("#<%=drpAttachmentType.ClientID%>").val('');
             }
         });
-
+                evt.preventDefault();
+            } else {
+                $("#attach-overlay").hide();
+            }
+        });
         //check attachment type and enable upload if file type selected
         $("#<%=drpAttachmentType.ClientID%>").change(function () {
             var upload = $("#<%=uplAttachments.ClientID%>");
@@ -399,9 +409,8 @@
     }
     function SetJudgeId() {
         var judgeId = $("#<%=drpJudge.ClientID%> option:selected").val();
-        var ModuleId = '<%=ModuleId%>';
         $('#<%=hdJudgeId.ClientID%>').val(judgeId);
-        var Url = "/DesktopModules/tjc.Modules/eWarrants/api/HttpData/notifyjudge/" + ModuleId + "/" + judgeId;
+        var Url = `${baseUrl}HttpData/notifyjudge/${moduleId}/${judgeId}`;
         var result = "";
         $.ajax({
             type: "GET",
@@ -425,8 +434,7 @@
         countyName = $("#<%=drpCounty.ClientID%> option:selected").val();
         judgeTypeId = "<%=JudgeTypeID %>";
         judgeList = $('#<%=drpJudge.ClientID%>');
-        var ModuleId = '<%= ModuleId %>';
-        var Url = "/DesktopModules/tjc.Modules/eWarrants/api/HttpData/rpojudges/" + ModuleId + "/";
+        var Url = `${baseUrl}HttpData/rpojudges/${moduleId}/`;
         var choices = '';
         if (countyName != "" && judgeTypeId != undefined) {
             Url += countyName + "/" + judgeTypeId;
@@ -458,5 +466,8 @@
             choices += '<option value="">No Judges for Selected Options</option>';
             judgeList.html(choices);
         }
+    }
+    function getAntiForgeryToken() {
+        return $('input[name="__RequestVerificationToken"]').val();
     }
 </script>

@@ -58,9 +58,9 @@
         <asp:HyperLink ID="lnkCancel" runat="server" class="btn btn-danger" Text="Return" /></li>
 </ul>
 
-<dnn:DnnJsInclude runat="server" FilePath="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js" />
-<dnn:DnnJsInclude runat="server" FilePath="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js" />
-<dnn:DnnCssInclude runat="server" FilePath="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css" />
+<dnn:DnnJsInclude runat="server" FilePath="/Resources/Libraries/DataTables/jquery.dataTables.min.js" />
+<dnn:DnnJsInclude runat="server" FilePath="/Resources/Libraries/DataTables/dataTables.bootstrap5.min.js" />
+<dnn:DnnCssInclude runat="server" FilePath="/Resources/Libraries/DataTables/dataTables.bootstrap5.min.css" />
 
 
 <script type="text/javascript">

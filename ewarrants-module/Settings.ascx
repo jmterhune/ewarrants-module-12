@@ -5,11 +5,6 @@
     <h2 class="dnnFormSectionHead"><a href="#">General Settings</a></h2>
     <fieldset class="dnnClear">
         <div class="dnnFormItem">
-            <dnn:label id="lblDemoMode" runat="server" controlname="chkDemoMode" suffix=":"></dnn:label>
-            <asp:CheckBox ID="chkDemoMode" runat="server" />
-        </div>
-
-        <div class="dnnFormItem">
             <dnn:label id="lblSergeant" runat="server" controlname="drpSergeantRole" suffix=":"></dnn:label>
             <asp:DropDownList ID="drpSergeantRole" runat="server"></asp:DropDownList>
         </div>

@@ -140,11 +140,6 @@ namespace tjc.Modules.eWarrants
                         txtRPOSarasota.Text = Convert.ToString(TabModuleSettings["sRPO"]);
                     if (TabModuleSettings.Contains("RPODirectory"))
                         txtAttachemntDirectory.Text = Convert.ToString(TabModuleSettings["RPODirectory"]);
-                    if (TabModuleSettings.Contains("DemoMode"))
-                    {
-                        if (bool.TryParse(TabModuleSettings["DemoMode"].ToString(), out bool demoMode))
-                            chkDemoMode.Checked = demoMode;
-                    }
                     if (TabModuleSettings.Contains("DeSotoClerk"))
                         txtDeSotoClerk.Text = Convert.ToString(TabModuleSettings["DeSotoClerk"]);
                     if (TabModuleSettings.Contains("ManateeClerk"))
@@ -159,7 +154,6 @@ namespace tjc.Modules.eWarrants
                         txtDeleteThreshold.Text = objSettings.DeleteThreshold.ToString();
                         txtNotificationEmail.Text = objSettings.NotificationEmail;
                         txtSignedThreshold.Text = objSettings.SignedThreshold.ToString();
-                        chkDemoMode.Checked = objSettings.DemoMode;
                         txtCompletedThreshold.Text = objSettings.Hours.ToString();
                         txtSenderEmail.Text = objSettings.SenderEmail;
                     }
@@ -185,7 +179,6 @@ namespace tjc.Modules.eWarrants
                 string JaRole = drpJARole.SelectedValue;
                 string AdminJudge = drpAdminJudge.SelectedValue;
                 string SergeantRole = drpSergeantRole.SelectedValue;
-                bool DemoMode = chkDemoMode.Checked;
                 string JaPage = cboJAPage.SelectedValue;
                 string dAOJ = drpDesotoAOJ.SelectedValue;
                 string mAOJ = drpManateeAOJ.SelectedValue;
@@ -237,7 +230,6 @@ namespace tjc.Modules.eWarrants
                 objSettings.ClaimedThreshold = claimedThreshold;
                 objSettings.DeleteThreshold = deleteThreshold;
                 objSettings.NotificationEmail = txtNotificationEmail.Text;
-                objSettings.DemoMode = chkDemoMode.Checked;
                 objSettings.Hours = completedThreshold;
                 objSettings.SignedThreshold = signedThreshold;
                 objSettings.SenderEmail = txtSenderEmail.Text;

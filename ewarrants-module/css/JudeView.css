@@ -332,3 +332,6 @@ input[type="submit"]:disabled {
         height: 1080px
     }
 }
+.button {
+    box-sizing: content-box !important;
+}

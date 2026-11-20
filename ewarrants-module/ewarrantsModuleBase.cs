@@ -239,9 +239,9 @@ namespace tjc.Modules.eWarrants
             if (objUser != null)
             {
                 string cell = objUser.Profile.Cell;
-                returnValue += string.IsNullOrEmpty(cell) ? "<br />No Cell" : "" + cell;
-                returnValue += "<br />";
-                returnValue += objUser.Email;
+                returnValue += string.IsNullOrEmpty(cell) ? "No Cell" : "" + cell;
+                if(objUser.Email!=null && objUser.Email.Length>0)
+                    returnValue += " <br /> " + objUser.Email;
             }
             return returnValue;
         }

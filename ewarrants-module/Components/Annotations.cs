@@ -60,7 +60,7 @@ namespace tjc.Modules.eWarrants.Components
             return new EmbeddedImageData(RenderDateGraphic(isRPO, (int)fontsize))
             {
                 Name = "DefaultDateStamp",
-                CanResize = false
+                CanResize = true
             };
         }
 
@@ -73,7 +73,7 @@ namespace tjc.Modules.eWarrants.Components
             return new EmbeddedImageData(new AnnotationImage(imagePath))
             {
                 Name = "DefaultPerscheduleStamp",
-                CanResize = false,
+                CanResize = true,
                 Size = new Size(newWidth, newHeight)
             };
         }
@@ -98,7 +98,7 @@ namespace tjc.Modules.eWarrants.Components
             return new EmbeddedImageData(initial)
             {
                 Size = new Size(width, height),
-                CanResize = false,
+                CanResize = true,
                 Name = "DefaultInitial"
             };
         }
@@ -111,7 +111,7 @@ namespace tjc.Modules.eWarrants.Components
             return new EmbeddedImageData(image)
             {
                 Name = "DefaultCheckMark",
-                CanResize = false,
+                CanResize = true,
                 Size = new Size(newWidth, newWidth)
             };
         }
@@ -150,17 +150,21 @@ namespace tjc.Modules.eWarrants.Components
 
             bmPhoto.SetResolution(bitmap.HorizontalResolution, bitmap.VerticalResolution);
 
-            // load the Bitmap into a Graphics object 
+            // load the Bitmap into a Graphics object
             Graphics grPhoto = Graphics.FromImage(bmPhoto);
             grPhoto.SmoothingMode = SmoothingMode.AntiAlias;
+            grPhoto.TextRenderingHint = System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
             grPhoto.DrawImage(bitmap, new Rectangle(0, 0, phWidth, phHeight), 0, 0, phWidth, phHeight, GraphicsUnit.Pixel);
 
             // -------------------------------------------------------
-            // to maximize the size of the Date message 
-            // test multiple Font sizes to determine the largest posible 
+            // to maximize the size of the Date message
+            // test multiple Font sizes to determine the largest posible
             // font we can use for the width of the signature
             // -------------------------------------------------------
-            int[] sizes = new int[] { 35, 30, 25, 20, 16, 12, 10 };
+            int[] sizes = new int[] { 72, 64, 56, 48, 42, 36, 30, 24, 20, 16 };
+
+            // Leave a small margin so the date is not jammed against the edges
+            float targetWidth = phWidth * 0.95f;
 
             Font crFont = null;
             SizeF crSize = new SizeF();
@@ -173,15 +177,15 @@ namespace tjc.Modules.eWarrants.Components
                 // Measure the Date string in this Font
                 crSize = grPhoto.MeasureString(watermarkText, crFont);
 
-                if (System.Convert.ToUInt16(crSize.Width) < System.Convert.ToUInt16(phWidth))
+                if (crSize.Width < targetWidth)
                     break;
             }
 
-            // Since all photographs will have varying heights, determine a 
+            // Since all photographs will have varying heights, determine a
             // position 50% from the bottom of the image
             int yPixlesFromBottom = System.Convert.ToInt32(Math.Truncate(phHeight * 0.5));
 
-            // Now that we have a point size use the Dates string height 
+            // Now that we have a point size use the Dates string height
             // to determine a y-coordinate to draw the string of the photograph
             float yPosFromBottom = ((phHeight - yPixlesFromBottom) - (crSize.Height /2));
 
@@ -194,11 +198,17 @@ namespace tjc.Modules.eWarrants.Components
                 Alignment = StringAlignment.Center
             };
 
-            SolidBrush semiTransBrush = new SolidBrush(Color.FromArgb(128, 0, 0, 0));
+            PointF textPos = new PointF(xCenterOfImg, yPosFromBottom);
 
-            // Draw the Date string a second time to create a shadow effect
-            // Make sure to move this text 1 pixel to the right and down 1 pixel
-            grPhoto.DrawString(watermarkText, crFont, semiTransBrush, new PointF(xCenterOfImg, yPosFromBottom), StrFormat);
+            // Alpha for the date overlay: 128 == 50% transparent. No halo/backing
+            // is drawn, so the signature ink shows through the date characters.
+            const int overlayAlpha = 128;
+
+            using (SolidBrush textBrush = new SolidBrush(Color.FromArgb(overlayAlpha, 0, 0, 0)))
+            {
+                grPhoto.DrawString(watermarkText, crFont, textBrush, textPos, StrFormat);
+            }
+
             bitmap = bmPhoto;
 
             return bitmap;

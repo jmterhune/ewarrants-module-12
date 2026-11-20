@@ -42,6 +42,15 @@ namespace tjc.Modules.eWarrants
         protected global::System.Web.UI.WebControls.PlaceHolder phMessage;
 
         /// <summary>
+        /// ltWilliamsMessage control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltWilliamsMessage;
+
+        /// <summary>
         /// container control.
         /// </summary>
         /// <remarks>
@@ -49,15 +58,6 @@ namespace tjc.Modules.eWarrants
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.HtmlControls.HtmlGenericControl container;
-
-        /// <summary>
-        /// ltHeader control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal ltHeader;
 
         /// <summary>
         /// Button_Redaction control.

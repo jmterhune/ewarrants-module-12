@@ -10,17 +10,18 @@
 ' 
 */
 
-using System;
-using DotNetNuke.Entities.Users;
-using tjc.Modules.eWarrants.Components;
-using DotNetNuke.Services.Exceptions;
-using System.Web.UI.WebControls;
-using System.Collections.Generic;
-using System.Linq;
-using DotNetNuke.Services.Mail;
 using DotNetNuke.Abstractions;
+using DotNetNuke.Entities.Users;
+using DotNetNuke.Framework.JavaScriptLibraries;
+using DotNetNuke.Services.Exceptions;
+using DotNetNuke.Services.Mail;
 using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Web.UI.WebControls;
+using tjc.Modules.eWarrants.Components;
 
 namespace tjc.Modules.eWarrants
 {
@@ -184,7 +185,7 @@ namespace tjc.Modules.eWarrants
                             if (!string.IsNullOrEmpty(judgeProfileContact2) && judgeProfileContact2.Contains("@"))
                                 Mail.SendEmail(noreplyEmail, judgeProfileContact2, subject, body);
                             if (HasUserOptedForSms(Judgeinfo.UserID))
-                                Helper.SendSmsNotifications(Judgeinfo,  subject, body);
+                                Helper.SendSmsNotifications(Judgeinfo, subject, body);
                         }
                         subject = "Out of Office Notice";
                         body = " The Honorable " + Judgeinfo.DisplayName.Replace(" ", " ") + " is Out of the Office. Please review the notice below" + Environment.NewLine + Environment.NewLine;
@@ -206,7 +207,7 @@ namespace tjc.Modules.eWarrants
                         if (!string.IsNullOrEmpty(judgeProfileContact2) && judgeProfileContact2.Contains("@"))
                             Mail.SendEmail(noreplyEmail, judgeProfileContact2, subject, body);
                         if (HasUserOptedForSms(Judgeinfo.UserID))
-                            Helper.SendSmsNotifications(Judgeinfo,  subject, body);
+                            Helper.SendSmsNotifications(Judgeinfo, subject, body);
                     }
                 }
             }
@@ -230,8 +231,10 @@ namespace tjc.Modules.eWarrants
         {
             try
             {
+                DotNetNuke.Framework.ServicesFramework.Instance.RequestAjaxAntiForgerySupport();
                 // The upload configuration will be available in the handler
                 uploadHandler = TemplateSourceDirectory + "/Handlers/WarrantHandler.ashx";
+                
                 if (Page.IsPostBack == false)
                 {
                     if (string.IsNullOrEmpty(JudgeRole))

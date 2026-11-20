@@ -116,11 +116,11 @@
     </div>
 </div>
 <dnn:DnnCssInclude runat="server" FilePath="~/Resources/Shared/components/TimePicker/Themes/jquery-ui.min.css" />
-<dnn:DnnCssInclude runat="server" FilePath="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.css" />
-<dnn:DnnJsInclude runat="server" FilePath="https://cdnjs.cloudflare.com/ajax/libs/jquery-timepicker/1.10.0/jquery.timepicker.min.js" />
-<dnn:DnnJsInclude runat="server" FilePath="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js" />
-<dnn:DnnJsInclude runat="server" FilePath="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js" />
-<dnn:DnnCssInclude runat="server" FilePath="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css" />
+<dnn:DnnCssInclude runat="server" FilePath="~/Resources/Shared/components/TimePicker/jquery.timepicker.css" />
+<dnn:DnnJsInclude runat="server" FilePath="~/Resources/Shared/components/TimePicker/jquery.timepicker.js" />
+<dnn:DnnJsInclude runat="server" FilePath="~/Resources/libraries/datatables/jquery.dataTables.min.js" />
+<dnn:DnnJsInclude runat="server" FilePath="~/Resources/libraries/datatables/dataTables.bootstrap5.min.js" />
+<dnn:DnnCssInclude runat="server" FilePath="~/Resources/libraries/datatables/dataTables.bootstrap5.min.css" />
 
 <script type="text/javascript">
     var $message = $('[id*=txtMessage]'), $judgelist = $('[id*=drpJudge]');

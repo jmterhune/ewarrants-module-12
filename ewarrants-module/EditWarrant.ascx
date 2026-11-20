@@ -1,13 +1,10 @@
 ﻿<%@ Control Language="C#" AutoEventWireup="true" CodeBehind="EditWarrant.ascx.cs" Inherits="tjc.Modules.eWarrants.EditWarrant" %>
 <%@ Register TagPrefix="dnn" TagName="Label" Src="~/controls/LabelControl.ascx" %>
-<%@ Import Namespace="System.Web.Helpers" %>
 <div class="dnnForm dnnClear">
     <div class="dnnFormItem dnnFormHelp dnnClear">
         <span class="dnnFormRequired"><%=Localization.GetString("RequiredFields", Localization.SharedResourceFile)%></span>
     </div>
-
     <asp:Panel ID="pnlWarrant" runat="server">
-       <%= System.Web.Helpers.AntiForgery.GetHtml() %>
         <h2 id="dnnPanel-Warrants" class="dnnFormSectionHead">Select File to Upload</h2>
 
         <div class="filebox">
@@ -156,12 +153,18 @@
     </ul>
 </div>
 <script type="text/javascript">
+    var moduleId = <%=ModuleId%>;
     var submit = 0;
     var extensionHash = {
         'pdf': 1,
         'tif': 1,
         'tiff': 1,
     };
+    var service = {
+        path: "eWarrants",
+        framework: $.ServicesFramework(moduleId),
+    };
+   var baseUrl = service.framework.getServiceRoot(service.path);
     function check_extension(filename) {
         var ext = filename.split('.').pop().toLowerCase();
         var submitEl = document.getElementById('<%=cmdUpload.ClientID%>');
@@ -191,24 +194,23 @@
             }
             var data = new FormData();
             data.append(files[0].name, files[0]);
-            var options = {};
-            options.url = "<%=uploadHandler%>";
-            options.type = "POST";
-            options.data = data;
-            options.contentType = false;
-            options.processData = false;
-            options.success = function (fileId) {
-                $("#upload-overlay").hide();
-                $("#<%=hdFileId.ClientID%>").val(fileId);
-                WriteMessage(fileId);
-            };
-            options.error = function (err) {
-                $("#upload-overlay").hide();
-                alert(err.statusText);
-            };
-
-            $.ajax(options);
-
+            $.ajax({
+                url: "<%=uploadHandler%>",
+                type: "POST",
+                data: data,
+                contentType: false,
+                headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
+                processData: false,
+                success: function (fileId) {
+                    $("#upload-overlay").hide();
+                    $("#<%=hdFileId.ClientID%>").val(fileId);
+                    WriteMessage(fileId);
+                },
+                error: function (err) {
+                    $("#upload-overlay").hide();
+                    alert(err.statusText);
+                }
+            });
             evt.preventDefault();
         });
         $(".warranttype").hide();
@@ -227,7 +229,8 @@
         $("#pcaField").hide();
         $("#dvEmergency").hide();
         $(".submitbutton").click(function (e) {
-            if ($("#<%=hdFileId.ClientID%>").val() === "") {
+            var fileId = $("#<%=hdFileId.ClientID%>").val();
+            if (fileId === "") {
                 $("#fileInputWarning").show();
                 return false;
             }
@@ -321,7 +324,6 @@
     function ClearOffenseList() {
         $('#<%= rblOffenseType.ClientID%> input:checked').prop("checked", false);
         $('#<%= rblWarrantType.ClientID%> input:checked').prop("checked", false);
-        //$(".warranttype").hide();
         $(".tjcToggleJudgeList").hide();
         FillJudges();
     }
@@ -399,9 +401,8 @@
     }
     function SetJudgeId() {
         var judgeId = $("#<%=drpJudge.ClientID%> option:selected").val();
-        var ModuleId = '<%=ModuleId%>';
         $('#<%=hdJudgeId.ClientID%>').val(judgeId);
-        var Url = "/DesktopModules/tjc.Modules/eWarrants/api/HttpData/notifyjudge/" + ModuleId + "/" + judgeId;
+        var Url = `${baseUrl}HttpData/notifyjudge/${moduleId}/${judgeId}`;
         var result = "";
         $.ajax({
             type: "GET",
@@ -418,8 +419,6 @@
             },
             error: function () {
                 ShowAlert("Error!", "Error retrieving judge availability.<br />Please contact the site administrator with this message.");
-                //$(".tjcToggleMessage p").html();
-                //$(".tjcToggleMessage").show();
             }
         });
     }
@@ -428,8 +427,7 @@
         selectedOffense = $('#<%= rblOffenseType.ClientID%> input:checked');
         judgeTypeId = selectedOffense.val();
         judgeList = $('#<%=drpJudge.ClientID%>');
-        var ModuleId = '<%=ModuleId%>';
-        var Url = "/DesktopModules/tjc.Modules/eWarrants/api/HttpData/judges/" + ModuleId + "/";
+        var Url = `${baseUrl}HttpData/judges/${moduleId}/`;
         var choices = '';
         if (countyName != "" && judgeTypeId != undefined) {
             Url += countyName + "/" + judgeTypeId;

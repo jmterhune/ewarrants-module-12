@@ -220,6 +220,7 @@ namespace tjc.Modules.eWarrants
         {
             try
             {
+                DotNetNuke.Framework.ServicesFramework.Instance.RequestAjaxAntiForgerySupport();
                 uploadHandler = TemplateSourceDirectory + "/Handlers/WarrantHandler.ashx";
                 attachmentHandler = TemplateSourceDirectory + "/Handlers/AttachmentHandler.ashx";
                 if (Page.IsPostBack == false)

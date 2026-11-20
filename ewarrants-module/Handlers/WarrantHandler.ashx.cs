@@ -1,10 +1,8 @@
 ﻿using DotNetNuke.Entities.Users;
-using DotNetNuke.Security;
 using DotNetNuke.Services.Exceptions;
 using DotNetNuke.Web.Api.Internal;
 using System;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Web;
 using tjc.Modules.eWarrants.Components;
@@ -25,7 +23,7 @@ namespace tjc.Modules.eWarrants.Handlers
                 if (context.Request.Files.Count == 0)
                     throw new ArgumentException("No file provided for upload.");
 
-               // ValidateAntiForgeryToken(context);
+                ValidateAntiForgeryToken(context);
                 var file = context.Request.Files[0];
                 if (string.IsNullOrEmpty(file.FileName) || file.ContentLength == 0)
                     throw new ArgumentException("Invalid or empty file.");
@@ -94,10 +92,13 @@ namespace tjc.Modules.eWarrants.Handlers
             var token = context.Request.Headers["RequestVerificationToken"];
             if (string.IsNullOrEmpty(token))
                 throw new HttpException((int)HttpStatusCode.Forbidden, "Missing anti-forgery token.");
+            var cookieToken = context.Request.Cookies["__RequestVerificationToken"]?.Value;
+            if (string.IsNullOrEmpty(cookieToken))
+                throw new HttpException((int)HttpStatusCode.Forbidden, "Missing anti-forgery cookie.");
 
             try
             {
-                AntiForgery.Instance.Validate("RequestVerificationToken", token);
+                AntiForgery.Instance.Validate(cookieToken, token);
             }
             catch
             {

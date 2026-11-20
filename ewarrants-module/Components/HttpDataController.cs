@@ -181,6 +181,7 @@ namespace tjc.Modules.eWarrants.Components
         [HttpGet]
         [ActionName("notifyjudge")]
         [DnnAuthorize]
+
         public NotificationResponse NotifyJudge(int moduleId, int judgeId)
         {
             try

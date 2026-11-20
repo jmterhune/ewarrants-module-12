@@ -14,7 +14,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>tjc.Modules.eWarrants</RootNamespace>
     <AssemblyName>tjc.Modules.eWarrants</AssemblyName>
-    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
     <UseIISExpress>false</UseIISExpress>
     <IISExpressSSLPort />
     <IISExpressAnonymousAuthentication />
@@ -50,60 +50,50 @@
   <ItemGroup>
     <Reference Include="Atalasoft.dotImage, Version=11.5.0.296, Culture=neutral, PublicKeyToken=2b02b46f7326f73b, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\websites\eWarrants-site\bin\Atalasoft.dotImage.dll</HintPath>
+      <HintPath>..\..\..\websites\eWarrants-site\bin\Atalasoft.dotImage.dll</HintPath>
     </Reference>
     <Reference Include="Atalasoft.dotImage.Pdf, Version=11.5.0.296, Culture=neutral, PublicKeyToken=2b02b46f7326f73b, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\websites\eWarrants-site\bin\Atalasoft.dotImage.Pdf.dll</HintPath>
+      <HintPath>..\..\..\websites\eWarrants-site\bin\Atalasoft.dotImage.Pdf.dll</HintPath>
     </Reference>
     <Reference Include="Atalasoft.dotImage.PdfReader, Version=11.5.0.296, Culture=neutral, PublicKeyToken=2b02b46f7326f73b, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\websites\eWarrants-site\bin\Atalasoft.dotImage.PdfReader.dll</HintPath>
+      <HintPath>..\..\..\websites\eWarrants-site\bin\Atalasoft.dotImage.PdfReader.dll</HintPath>
     </Reference>
     <Reference Include="Atalasoft.dotImage.WebControls, Version=11.5.0.296, Culture=neutral, PublicKeyToken=2b02b46f7326f73b, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\websites\eWarrants-site\bin\Atalasoft.dotImage.WebControls.dll</HintPath>
+      <HintPath>..\..\..\websites\eWarrants-site\bin\Atalasoft.dotImage.WebControls.dll</HintPath>
     </Reference>
     <Reference Include="Atalasoft.dotImage.WinControls, Version=11.5.0.296, Culture=neutral, PublicKeyToken=2b02b46f7326f73b, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\websites\eWarrants-site\bin\Atalasoft.dotImage.WinControls.dll</HintPath>
+      <HintPath>..\..\..\websites\eWarrants-site\bin\Atalasoft.dotImage.WinControls.dll</HintPath>
     </Reference>
     <Reference Include="Atalasoft.PdfDoc, Version=11.5.0.296, Culture=neutral, PublicKeyToken=2b02b46f7326f73b, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\websites\eWarrants-site\bin\Atalasoft.PdfDoc.dll</HintPath>
+      <HintPath>..\..\..\websites\eWarrants-site\bin\Atalasoft.PdfDoc.dll</HintPath>
     </Reference>
     <Reference Include="Azure.Communication.Sms, Version=1.0.1.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Azure.Communication.Sms.1.0.2\lib\net8.0\Azure.Communication.Sms.dll</HintPath>
+      <HintPath>..\packages\Azure.Communication.Sms.1.0.1\lib\netstandard2.0\Azure.Communication.Sms.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Azure.Core, Version=1.14.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Azure.Core.1.47.3\lib\net8.0\Azure.Core.dll</HintPath>
+      <HintPath>..\packages\Azure.Core.1.14.0\lib\net461\Azure.Core.dll</HintPath>
+      <Private>True</Private>
     </Reference>
-    <Reference Include="DotNetNuke, Version=7.0.2.1, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ewarrants-site\bin\DotNetNuke.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="DotNetNuke">
+      <HintPath>..\..\..\..\websites\eWarrants\bin\DotNetNuke.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetNuke.Abstractions, Version=9.10.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ewarrants-site\bin\DotNetNuke.Abstractions.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="DotNetNuke.Abstractions">
+      <HintPath>..\..\..\..\websites\eWarrants\bin\DotNetNuke.Abstractions.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetNuke.DependencyInjection, Version=9.10.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ewarrants-site\bin\DotNetNuke.DependencyInjection.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="DotNetNuke.DependencyInjection">
+      <HintPath>..\..\..\..\websites\eWarrants\bin\DotNetNuke.DependencyInjection.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetNuke.Web, Version=9.10.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ewarrants-site\bin\DotNetNuke.Web.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="DotNetNuke.Web">
+      <HintPath>..\..\..\..\websites\eWarrants\bin\DotNetNuke.Web.dll</HintPath>
     </Reference>
-    <Reference Include="DotNetNuke.WebUtility, Version=4.2.1.783, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\ewarrants-site\bin\DotNetNuke.WebUtility.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="DotNetNuke.WebUtility">
+      <HintPath>..\..\..\..\websites\eWarrants\bin\DotNetNuke.WebUtility.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
@@ -145,6 +135,10 @@
     <Reference Include="Microsoft.IdentityModel.Tokens, Version=8.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IdentityModel.Tokens.8.3.1\lib\net472\Microsoft.IdentityModel.Tokens.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -279,19 +273,35 @@
     <Reference Include="System.Text.Json, Version=8.0.0.6, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Text.Json.8.0.6\lib\net462\System.Text.Json.dll</HintPath>
     </Reference>
-    <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\websites\eWarrants-site\bin\System.Threading.Tasks.Extensions.dll</HintPath>
-    </Reference>
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Web.Http, Version=5.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+    <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.3.0\lib\net45\System.Web.Helpers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.Http, Version=5.2.9.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\websites\eWarrants Portal Interface\eWarrants-site\bin\System.Web.Http.dll</HintPath>
+      <HintPath>..\..\..\..\websites\eWarrants\bin\System.Web.Http.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Razor.3.3.0\lib\net45\System.Web.Razor.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.3.0\lib\net45\System.Web.WebPages.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.3.0\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.3.0\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />

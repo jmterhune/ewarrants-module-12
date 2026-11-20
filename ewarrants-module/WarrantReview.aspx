@@ -9,7 +9,7 @@
     <meta id="MetaRobots" name="robots" content="NOINDEX, NOFOLLOW" />
     <link rel="stylesheet" type="text/css" href="/portals/_default/skins/Xcillion/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="/Portals/_default/skins/xcillion/css/font-awesome.min.css" />
-    <link href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css?cdv=168" type="text/css" rel="stylesheet" />
+    <link href="/Resources/Libraries/dataTables.bootstrap5.min.css?cdv=168" type="text/css" rel="stylesheet" />
     <link rel="SHORTCUT ICON" href="/Portals/0/favicon.ico?ver=gE-UzhY6CsRyUbgAf3S-9g%3d%3d" type="image/x-icon" />
     <script src="/Resources/Libraries/jQuery/03_05_01/jquery.js"></script>
     <script src="/Resources/Libraries/jQuery-UI/01_12_01/jquery-ui.js" type="text/javascript"></script>

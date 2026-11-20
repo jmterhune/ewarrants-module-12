@@ -15,24 +15,6 @@ namespace tjc.Modules.eWarrants
     {
 
         /// <summary>
-        /// lblDemoMode control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.UserControl lblDemoMode;
-
-        /// <summary>
-        /// chkDemoMode control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.CheckBox chkDemoMode;
-
-        /// <summary>
         /// lblSergeant control.
         /// </summary>
         /// <remarks>

@@ -9,8 +9,10 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head id="hdrWarrant" runat="server">
-    <link rel="stylesheet" type="text/css" href="css/JudeView.min.css?ver=6-5-24" />
-    <link rel="stylesheet" href="/Resources/Libraries/jQuery-UI/01_13_02/jquery-ui.css?v=1" type="text/css" />
+    <link rel="stylesheet" href="/Portals/_default/Skins/Xcillion/Bootstrap/css/bootstrap.min.css?v=8-24-26" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="css/JudeView.min.css?ver=8-24-26" />
+    <link rel="stylesheet" href="/Resources/Libraries/jQuery-UI/01_13_02/jquery-ui.css?v=8-24-26" type="text/css" />
+    
     <style>
         .affidavit {
             color: #000;
@@ -48,12 +50,13 @@
         <script src="/Resources/Libraries/jQuery-UI/01_12_01/jquery-ui.js?v=1" type="text/javascript"></script>
         <script type="text/javascript" src="js/jquery.form.js?v=1"></script>
         <asp:PlaceHolder ID="phMessage" runat="server" />
+        <%= System.Web.Helpers.AntiForgery.GetHtml() %>
+        <asp:Literal id="ltWilliamsMessage" runat="server" >
+        <div class="alert alert-info">Please schedule Sarasota RPO Compliance hearings and Final hearings on Monday, Wednesday, or Thursday at 1:00 PM in Courtroom 6A at the Lynn N. Silvertooth Judicial Center</div>
+
+        </asp:Literal>
         <div id="container" runat="server">
             <header>
-                <hgroup>
-                    <h1>
-                        <asp:Literal ID="ltHeader" runat="server"></asp:Literal></h1>
-                </hgroup>
                 <menu type="toolbar" class="main">
                     <ul class="main_ul">
 
@@ -115,7 +118,7 @@
                         <li>
                             <menu class="sub" label="Stamp">
                                 <span style="display: inline-block; margin-top: 2px; float: right;">
-                                    <input type="text" id="txtStampText" name="lname" maxlength="50" style="width: 100px" /><asp:Button ID="btnText" OnClientClick="SetText(); return false;" runat="server" Text="Insert" /></span>
+                                    <input type="text" id="txtStampText" name="lname" maxlength="50" style="width: 100px" /><asp:Button ID="btnText" OnClientClick="SetText(); return false;" CssClass="btn btn-default" runat="server" Text="Insert" /></span>
 
                                 <asp:ImageButton CssClass="button" ID="Button_PS" runat="server" ImageUrl="~/Icons/ps.png"
                                     ToolTip="Creates Per Schedule annotation." Height="24px" Width="24px" OnClientClick="CreateAnnotation('EmbeddedImageData', 'DefaultPerscheduleStamp'); return false;" />
@@ -184,12 +187,12 @@
             <footer id="status" class="dnnForm dnnClear">
                 <ul class="dnnActions dnnClear">
                     <li id="sb">
-                        <asp:Button ID="cmdSave" runat="server" CssClass="dnnPrimaryAction" Text="Approve" OnClientClick="ApproveWarrant(); return false;" /></li>
+                        <asp:Button ID="cmdSave" runat="server" CssClass="btn btn-primary" Text="Approve" OnClientClick="ApproveWarrant(); return false;" /></li>
                     <li id="rb">
-                        <input id="txtReason" type="text" name="Reason" maxlength="250" placeholder="Reject Reason" />
-                        <asp:Button ID="cmdReject" CssClass="dnnSecondaryAction" runat="server" CausesValidation="true" Text="Reject" OnClientClick="RejectWarrant(); return false;" /></li>
+                        <input id="txtReason" type="text" name="Reason" class="form-control" style="display:inline;" maxlength="250" placeholder="Reject Reason" />
+                        <asp:Button ID="cmdReject" CssClass="btn btn-danger" runat="server" CausesValidation="true" Text="Reject" OnClientClick="RejectWarrant(); return false;" /></li>
                     <li id="cb">
-                        <asp:Button ID="cmdCancel" CssClass="dnnSecondaryAction" runat="server" CausesValidation="false" Text="Return to Signing Queue without Action" OnClientClick="CancelWarrant(); return false;" /></li>
+                        <asp:Button ID="cmdCancel" CssClass="btn btn-info" runat="server" CausesValidation="false" Text="Return to Signing Queue without Action" OnClientClick="CancelWarrant(); return false;" /></li>
                 </ul>
                 <asp:Literal ID="ltAffidavitInfo" runat="server" />
             </footer>

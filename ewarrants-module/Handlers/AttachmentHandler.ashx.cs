@@ -23,6 +23,7 @@ namespace tjc.Modules.eWarrants.Handlers
                 if (objUser == null || objUser.UserID <= 0)
                     throw new UnauthorizedAccessException("User not authenticated. You must be Law Enforcement Personnel.");
 
+                ValidateAntiForgeryToken(context);
 
                 if (context.Request.Files.Count > 0)
                 {
@@ -116,10 +117,13 @@ namespace tjc.Modules.eWarrants.Handlers
             var token = context.Request.Headers["RequestVerificationToken"];
             if (string.IsNullOrEmpty(token))
                 throw new HttpException((int)HttpStatusCode.Forbidden, "Missing anti-forgery token.");
+            var cookieToken = context.Request.Cookies["__RequestVerificationToken"]?.Value;
+            if (string.IsNullOrEmpty(cookieToken))
+                throw new HttpException((int)HttpStatusCode.Forbidden, "Missing anti-forgery cookie.");
 
             try
             {
-                AntiForgery.Instance.Validate(null, token);
+                AntiForgery.Instance.Validate(cookieToken, token);
             }
             catch
             {

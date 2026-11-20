@@ -3,6 +3,13 @@
 }
 #juvpickupForm {
     max-width: 350px;
+    padding: 10px;
+    clear: both;
+    background-color: whitesmoke;
+    border: solid 1px #ccc;
+    -moz-border-radius: inherit;
+    -webkit-border-radius: inherit;
+    border-radius: inherit;
 }
 
 .framed img {
@@ -57,7 +64,7 @@
 .signaturebox {
     width: 20px;
 }
-
+.show{opacity:1 !important}
 #attachments {
     padding: 15px 0px;
 }
@@ -272,13 +279,29 @@ td.command{
     min-width: 400px !important;
 }
 
-.fileUpload {
+.fileUpload, #uplAttachments {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
     opacity: 0;
+    filter: alpha(opacity=0);
+    direction: ltr;
+    cursor: pointer;
+    height: 100%;
+    font-size: 200px;
 }
-    .fileUpload:disabled {
+    .fileUpload:disabled, #uplAttachments:disabled {
         cursor: not-allowed !important;
     }
-
+span.dnnInputFileWrapper {
+    overflow: hidden !important;
+    margin: 0px 4px 0 0;
+    width: auto !important;
+    display: block !important;
+    float: left !important;
+    position: relative;
+}
 .disabledWrapper, .disabledWrapper:hover {
     background-image: none !important;
     background-color: #808080;
@@ -287,7 +310,7 @@ td.command{
 }
 
 .date, .ui-timepicker-wrapper,.time {
-    width: 100px !important;
+    width: 120px !important;
 }
 
 div.dataTables_filter label, .dataTables_info {

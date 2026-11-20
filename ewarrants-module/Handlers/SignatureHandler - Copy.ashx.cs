@@ -1,6 +1,6 @@
 ﻿using DotNetNuke.Entities.Users;
-using DotNetNuke.Security;
 using DotNetNuke.Services.Exceptions;
+using DotNetNuke.Web.Api.Internal;
 using System;
 using System.IO;
 using System.Net;
@@ -31,7 +31,6 @@ namespace tjc.Modules.eWarrants.Handlers
                         if (string.IsNullOrEmpty(fileIdParam) || !Int32.TryParse(fileIdParam, out int fileId))
                             throw new ArgumentException("Invalid file ID for deletion.");
 
-                        ValidateAntiForgeryToken(context);
                         ctl.DeleteFile(fileId);
                         context.Response.ContentType = "text/plain";
                         context.Response.Write("Success");
@@ -41,7 +40,6 @@ namespace tjc.Modules.eWarrants.Handlers
                         if (context.Request.Files.Count == 0)
                             throw new ArgumentException("No file provided for upload.");
 
-                        ValidateAntiForgeryToken(context);
                         var file = context.Request.Files[0];
                         if (string.IsNullOrEmpty(file.FileName) || file.ContentLength == 0)
                             throw new ArgumentException("Invalid or empty file.");
@@ -74,7 +72,7 @@ namespace tjc.Modules.eWarrants.Handlers
             {
                 Exceptions.LogException(ex);
                 context.Response.ContentType = "text/plain";
-                context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                context.Response.StatusCode = ex is HttpException ? (int)((HttpException)ex).GetHttpCode() : (int)HttpStatusCode.BadRequest;
                 context.Response.Write("Error: " + ex.Message);
                 context.Response.End();
             }
@@ -131,9 +129,8 @@ namespace tjc.Modules.eWarrants.Handlers
 
             try
             {
-                // Use AntiForgery class from System.Web.Helpers to validate the token
-                DotNetNuke.Web.Api.Internal.AntiForgery.Instance.Validate(null, token);
-            }   
+                AntiForgery.Instance.Validate(null, token);
+            }
             catch
             {
                 throw new HttpException((int)HttpStatusCode.Forbidden, "Invalid anti-forgery token.");

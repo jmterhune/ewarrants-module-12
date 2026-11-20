@@ -97,8 +97,8 @@ namespace tjc.Modules.eWarrants.Handlers
                 throw new ArgumentException("Invalid file or user ID.");
 
             var extension = Path.GetExtension(file.FileName)?.ToLower();
-            if (extension != ".png")
-                throw new ArgumentException("Only PNG files are allowed for signatures.");
+            //if (extension != ".png")
+            //    throw new ArgumentException("Only PNG files are allowed for signatures.");
 
             var imageData = GetImageBytes(file.InputStream);
             var objFile = new Components.File
@@ -128,10 +128,13 @@ namespace tjc.Modules.eWarrants.Handlers
             var token = context.Request.Headers["RequestVerificationToken"];
             if (string.IsNullOrEmpty(token))
                 throw new HttpException((int)HttpStatusCode.Forbidden, "Missing anti-forgery token.");
+            var cookieToken = context.Request.Cookies["__RequestVerificationToken"]?.Value;
+            if (string.IsNullOrEmpty(cookieToken))
+                throw new HttpException((int)HttpStatusCode.Forbidden, "Missing anti-forgery cookie.");
 
             try
             {
-                AntiForgery.Instance.Validate(null, token);
+                AntiForgery.Instance.Validate(cookieToken, token);
             }
             catch
             {

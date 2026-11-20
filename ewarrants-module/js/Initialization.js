@@ -602,6 +602,7 @@ function AddCustomTextToList(text) {
         type: "POST",
         cache: "false",
         url: Url,
+        headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
         data: ({ AnnotationText: text }),
         success: function () {
             GetCustomTextList();
@@ -622,6 +623,7 @@ function DeleteCustomTextFromList(id) {
             type: "POST",
             cache: "false",
             url: Url,
+            headers: { "RequestVerificationToken": $('input[name="__RequestVerificationToken"]').val() },
             data: ({ AnnotationId: id }),
             success: function () {
                 GetCustomTextList();
